@@ -1,0 +1,159 @@
+.groups { 
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.main-container {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 20px;
+}
+
+.main-container .card {
+    flex: 1 1 40%; 
+    min-width: 100%;
+    max-width: 100%; 
+    min-height: 150px; 
+    max-height: 180px; 
+    transition: all 0.3s ease-in-out;
+    cursor: pointer;
+    position: relative;
+    background: #ffffff;
+    border: 1px solid #dcdcdc;
+    border-radius: 12px;
+    padding: 20px 5px 20px 20px;
+    padding-bottom: 20px;
+}
+
+.main-container .card.expanded {
+    flex: 1 1 100%; 
+    min-width: 100%;
+    max-width: 100%;
+    min-height: 200px;
+    max-height: 300px;
+    z-index: 10;
+}
+
+/* щоб скрол був тільки вертикальний */
+.card.expanded .scroll {
+    overflow-x: hidden; 
+    overflow-y: auto;
+    max-height: 300px; /* контрольована висота для скролу */
+}
+
+.group-scroll {
+    pointer-events: none;
+}
+
+.card.expanded .group-scroll {
+    pointer-events: all;
+}
+
+.title-row {
+    display: flex;
+    justify-content: space-between;
+    padding-right: 5px;
+}
+
+.group-title {
+    font-size: 18px;
+}
+
+h2 {
+    margin: 0;
+    padding: 0;
+}
+
+.tag {
+    margin: 4px;
+    margin-right: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    background-color: #a19999;
+}
+
+.item-copy {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.modal-backdrop {
+    --bs-backdrop-zindex: 1050;
+    --bs-backdrop-bg: #000;
+    --bs-backdrop-opacity: 0.5;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: var(--bs-backdrop-zindex);
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--bs-backdrop-bg);
+}
+.modal-backdrop.fade {
+    opacity: 0;
+}
+.modal-backdrop.show {
+    opacity: var(--bs-backdrop-opacity);
+}
+
+.item-copy .item {
+    flex: 1;
+    display: flex;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    margin-bottom: 6px;
+    border-radius: 10px;
+    cursor: pointer;
+    /* pointer-events: none; */
+    background: #ffffff;
+    border: 1px solid #dcdcdc;
+    transition: background 0.2s ease;
+    align-items: center; 
+}
+
+
+.item-copy .copy {
+    width: 40px; 
+    height: 40px;
+    flex: 0 0 auto;
+    font-size: 13px;
+    margin-bottom: 6px;
+    margin-right: 15px;
+    border-radius: 9px;
+    background-color: #ffffff;
+    color: black;
+    border: 1px solid #dcdcdc;
+}
+
+.item-name {
+    padding-right: 7px;
+    font-size: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#itemModal {
+    z-index: 1000;
+    display: none;
+}
+
+#itemModal-block {
+    z-index: 1000;
+    display: block;
+}
+
+.nav-link, .dropdown-item {
+    cursor: pointer;
+}

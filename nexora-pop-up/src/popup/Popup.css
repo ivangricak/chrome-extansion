@@ -1,0 +1,17 @@
+@media (prefers-color-scheme: light) {
+  a:hover {
+    color: #61dafb;
+  }
+}
+
+:root {
+  background-color: white;
+}
+
+main {
+  width: 300px;
+  height: 500px;
+  text-align: center;
+  margin: 0 auto;
+}
+

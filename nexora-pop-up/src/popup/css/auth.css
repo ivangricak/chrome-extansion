@@ -1,0 +1,67 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+a {
+    color: white;
+    text-decoration: none;
+}
+
+.duo {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+}
+
+.inputLogin {
+    display: flex;
+    text-align: left;
+    margin-top: 5px;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.inputLogin input {
+    height: 30px;
+    display: block;
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #212529;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.buttonLogin {
+    background-color: #0d6efd;
+    border: none;
+    cursor: pointer;
+    border-radius: 10px;
+    width: 100px;
+    height: 30px;
+}
+
+.kontrol {
+    display: flex;
+    justify-content: space-around;
+}
+
+.reg-btn-log {
+    margin: 12px;
+    font-size: 15px;
+    text-align: right;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #212529;
+    width: 100%;
+}
+
+.navbar-expand-md {
+    width: 100%;
+}
