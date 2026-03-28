@@ -3,6 +3,99 @@ import '../../css/auth.css'
 import '../../css/main.css'
 import Header from '../header'
 
+class ShowGroup extends React.Component {
+    render() {
+        const { group, expandedId, ShowItemBody, toggleCard } = this.props;
+        console.log('check:', group);
+        const conEdit = group.pivot.role == 0 || group.pivot.role == null;
+
+        const profileUrl = conEdit ? `/online/profile/${conEdit.id}` : '#';
+
+        return (
+            <div className={`card ${expandedId === group.id ? 'expanded' : ''}`} onClick={(e) => toggleCard(e, group.id)} key={group.id}>
+                <div className="title-row">
+                    <h5 className="group-title">{group.name}</h5>
+                    <div className="dropdown">
+                        <button type="button" className="btn" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i className="bi bi-three-dots-vertical"></i>
+                        </button>
+                            {
+                            conEdit ? 
+                                    <ul className="dropdown-menu">
+                                        <li className="nav-item">
+                                            <button className="update-item nav-link">edit group</button>
+                                        </li>
+                                        <li className="nav-item">
+                                            <button type="submit" className="create-item nav-link">create item</button>
+                                        </li>
+                                        <li><p class="dropdown-divider"></p></li>
+                                        <li className="nav-item">
+                                            <button type="submit" className="delete-btn-group nav-link">Delete Group</button>
+                                        </li>
+                                    </ul>
+                                :
+                                    <ul className="dropdown-menu">
+                                        <li className="nav-item">
+                                            <a className="nav-link" href="${profileUrl}">Profile</a>
+                                            <button className="nav-link" onclick="copyGroup1(${group.id})">copy group</button>
+                                            <li className="nav-item">
+                                                <button type="submit" className="delete-btn-group nav-link">Delete Group</button>
+                                            </li>
+                                        </li>
+                                    </ul>
+                            }
+                    </div>
+                </div>
+                <div className="scroll overflow-auto group-scroll">
+                    {group.items?.map((item) => (
+                        <div className="item-copy" key={item.id}>
+                            <div className="item" onClick={() => ShowItemBody(item)} id='item'>
+                                <span className="tag">{item.tag || ' '}</span>
+                                <span className='item-name'>{item.name}</span>
+                            </div>
+                            <button className="copy" data-link={item.link} type="button">copy</button>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        )
+    }
+    
+}
+
+class ShowDefGroup extends React.Component {
+    render () {
+        const { defgroup, expandedId, ShowItemBody, toggleCard } = this.props;
+
+        return (
+            <div className={`card ${expandedId === defgroup.id ? 'expanded' : ''}`} onClick={(e) => toggleCard(e, defgroup.id)} key={defgroup.id}>
+                <div className="title-row">
+                    <h5 className="mb-3">{defgroup.name}</h5>
+                    <div className="dropdown">
+                        <button type="button" className="btn" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i className="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul className="dropdown-menu">
+                            <li className="nav-item"><button type="submit" className="def-create-item nav-link">create item</button></li>
+                        </ul>
+                    </div>
+                </div>
+                <div className="scroll overflow-auto group-scroll">
+                    {defgroup.items?.map((item) => (
+                        <div className="item-copy" key={item.id}>
+                            <div className="item" onClick={() => ShowItemBody(item)} id='item'>
+                                <span className="tag">{item.tag || ' '}</span>
+                                <span>{item.name}</span>
+                            </div>
+                            <button className="copy" type="button">copy</button>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        )
+    }
+}
+
 class Home extends React.Component {
 
     constructor(props) {
@@ -15,7 +108,8 @@ class Home extends React.Component {
             defgroup: [],
             users: [],
             loading: true,
-            error: null
+            error: null,
+            dropdown: []
         }
     }
 
@@ -129,7 +223,7 @@ class Home extends React.Component {
     render() {
         const { groups, defgroup, users, loading, error } = this.state
 
-        console.log(groups);
+        console.log('groups', groups);
         return (
             <>
                 <main className="overflow-auto" style={{ maxHeight: "450px" }}>
@@ -141,32 +235,13 @@ class Home extends React.Component {
                     <div className="default_group">
                         <div className="main-container">
                                 {defgroup.map((defg) => (
-                                    <>          
-                                        <div className={`card ${this.state.expandedId === defg.id ? 'expanded' : ''}`} onClick={(e) => this.toggleCard(e, defg.id)} id="card" key={defg.id}>
-                                            <div className="title-row">
-                                                <h5 className="mb-3">{defg.name}</h5>
-                                                <div className="dropdown">
-                                                    <button type="button" className="btn" data-bs-toggle="dropdown" aria-expanded="false">
-                                                        <i className="bi bi-three-dots-vertical"></i>
-                                                    </button>
-                                                    <ul className="dropdown-menu">
-                                                        <li><button type="submit" className="def-create-item">create item</button></li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                            <div className="scroll overflow-auto group-scroll">
-                                                {defg.items.map((item) => (
-                                                    <div className="item-copy" key={item.id}>
-                                                        <div className="item" onClick={() => this.ShowItemBody(item)} id='item'>
-                                                            <span className="tag">{item.tag || ' '}</span>
-                                                            <span>{item.name}</span>
-                                                        </div>
-                                                        <button className="copy" type="button">copy</button>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </>
+                                    <ShowDefGroup
+                                        key={defg.id}
+                                        defgroup={defg}
+                                        expandedId={this.state.expandedId}
+                                        ShowItemBody={this.ShowItemBody}
+                                        toggleCard={this.toggleCard}
+                                    />
                                 ))}
                         </div>
                     </div>
@@ -174,34 +249,16 @@ class Home extends React.Component {
                     <div className="groups">
                         <div className="main-container mt-4">
                             {groups.map((group) => (
-                                <>
-                                    <div className={`card ${this.state.expandedId === group.id ? 'expanded' : ''}`} onClick={(e) => this.toggleCard(e, group.id)} id="card" key={group.id}>
-                                        <div className="title-row">
-                                            <h5 className="group-title">{group.name}</h5>
-                                            <div className="dropdown">
-                                                <button type="button" className="btn" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <i className="bi bi-three-dots-vertical"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div className="scroll overflow-auto group-scroll">
-                                            {group.items.map((item) => (
-                                                <div className="item-copy" id="item-copy" key={item.id}>
-                                                    <div className="item" onClick={() => this.ShowItemBody(item)} id='item'>
-                                                        <span className="tag">{item.tag || ' '}</span>
-                                                        <span className='item-name'>{item.name}</span>
-                                                    </div>
-                                                    <button className="copy" data-link={item.link} type="button">copy</button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </>
+                                <ShowGroup
+                                    key={group.id}
+                                    group={group}
+                                    expandedId={this.state.expandedId}
+                                    ShowItemBody={this.ShowItemBody}
+                                    toggleCard={this.toggleCard}
+                                />
                             ))}
                         </div>
                     </div>
-
-
                     {this.state.selectedItem != null && Object.keys(this.state.selectedItem).length > 0 && (
                         <div className="modal" id="itemModal-block">
                             <div className="modal-dialog modal-fullscreen">

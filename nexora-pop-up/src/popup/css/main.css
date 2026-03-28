@@ -2,6 +2,7 @@
     width: 100%;
     display: flex;
     justify-content: center;
+    
 }
 
 .main-container {
@@ -156,4 +157,10 @@ h2 {
 
 .nav-link, .dropdown-item {
     cursor: pointer;
+}
+
+
+.dropdown-menu {
+    padding-left: 15px;
+    padding-right: 15px;
 }
