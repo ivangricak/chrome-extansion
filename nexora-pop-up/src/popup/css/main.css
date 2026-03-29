@@ -2,7 +2,7 @@
     width: 100%;
     display: flex;
     justify-content: center;
-    
+
 }
 
 .main-container {
@@ -163,4 +163,18 @@ h2 {
 .dropdown-menu {
     padding-left: 15px;
     padding-right: 15px;
+}
+
+.created-div {
+    position: fixed;
+    text-align: left;
+    width: 80%;
+    top: 50%;                
+    left: 50%;              
+    transform: translate(-50%, -50%);
+    background-color: white;
+    border: 2px solid #333;
+    padding: 20px;
+    z-index: 9999;            /* поверх всього */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }

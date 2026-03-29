@@ -9,7 +9,7 @@ class ShowGroup extends React.Component {
         console.log('check:', group);
         const conEdit = group.pivot.role == 0 || group.pivot.role == null;
 
-        const profileUrl = conEdit ? `/online/profile/${conEdit.id}` : '#';
+        // const profileUrl = conEdit ? `/online/profile/${conEdit.id}` : '#';
 
         return (
             <div className={`card ${expandedId === group.id ? 'expanded' : ''}`} onClick={(e) => toggleCard(e, group.id)} key={group.id}>
@@ -28,7 +28,7 @@ class ShowGroup extends React.Component {
                                         <li className="nav-item">
                                             <button type="submit" className="create-item nav-link">create item</button>
                                         </li>
-                                        <li><p class="dropdown-divider"></p></li>
+                                        <li><p className="dropdown-divider"></p></li>
                                         <li className="nav-item">
                                             <button type="submit" className="delete-btn-group nav-link">Delete Group</button>
                                         </li>
@@ -36,8 +36,8 @@ class ShowGroup extends React.Component {
                                 :
                                     <ul className="dropdown-menu">
                                         <li className="nav-item">
-                                            <a className="nav-link" href="${profileUrl}">Profile</a>
-                                            <button className="nav-link" onclick="copyGroup1(${group.id})">copy group</button>
+                                            <a className="nav-link" href="">Profile</a>
+                                            <button className="nav-link">copy group</button>
                                             <li className="nav-item">
                                                 <button type="submit" className="delete-btn-group nav-link">Delete Group</button>
                                             </li>
@@ -61,11 +61,51 @@ class ShowGroup extends React.Component {
         )
     }
     
-}
+};
+
+class CreateDefItem extends React.Component {
+
+    render () {
+
+        const { id, closeCreateForm} = this.props;
+        console.log(id);
+
+        return (
+            <div className="created-div">
+                <div className="mb-3">
+                    <label className="form-label">Name</label>
+                    <input type="text" className="form-control" name="name" placeholder="name" required/>
+                </div>
+        
+                <div className="mb-3">
+                    <label className="form-label">State:</label>
+                    <select className="form-select" name="state">
+                        <option value={1}>Public</option>
+                        <option value={0}>Private</option>
+                    </select>
+                </div>
+        
+                <div className="mb-3">
+                    <label className="form-label">Link</label>
+                    <input type="text" className="form-control" name="link" placeholder="link"/>
+                </div>
+        
+                <div className="mb-3">
+                    <label className="form-label">Description</label>
+                    <textarea className="form-control" rows="3" name="description"></textarea>
+                </div>
+        
+                <button type="button" className="create btn btn-success m-2">Create</button>
+                <button type="button" onClick={() => closeCreateForm()} className="close-div btn btn-danger m-2">Закрити</button>
+            </div>
+        )
+    }
+};
 
 class ShowDefGroup extends React.Component {
+    
     render () {
-        const { defgroup, expandedId, ShowItemBody, toggleCard } = this.props;
+        const { defgroup, expandedId, ShowItemBody, toggleCard, openCreateForm } = this.props;
 
         return (
             <div className={`card ${expandedId === defgroup.id ? 'expanded' : ''}`} onClick={(e) => toggleCard(e, defgroup.id)} key={defgroup.id}>
@@ -76,7 +116,7 @@ class ShowDefGroup extends React.Component {
                             <i className="bi bi-three-dots-vertical"></i>
                         </button>
                         <ul className="dropdown-menu">
-                            <li className="nav-item"><button type="submit" className="def-create-item nav-link">create item</button></li>
+                            <li className="nav-item"><button type="submit" className="def-create-item nav-link" onClick={() => openCreateForm(defgroup.id)}>create item</button></li>
                         </ul>
                     </div>
                 </div>
@@ -92,9 +132,10 @@ class ShowDefGroup extends React.Component {
                     ))}
                 </div>
             </div>
+            
         )
     }
-}
+};
 
 class Home extends React.Component {
 
@@ -102,6 +143,8 @@ class Home extends React.Component {
         super(props)
 
         this.state = {
+            showDefItemForm: false,
+            selectDefId: null,
             selectedItem: [],
             expandedId: null,
             groups: [],
@@ -156,8 +199,6 @@ class Home extends React.Component {
             });
         });
     }
-
-   
 
     ShowItemBody = (item) => {
         console.log("fdad", item);
@@ -219,6 +260,20 @@ class Home extends React.Component {
             expandedId: null
         })
     }
+
+    openCreateForm = (id) => {
+        this.setState({
+            showDefItemForm: true,
+            selectDefId: id
+        })
+    }
+
+    closeCreateForm = () => {
+        this.setState({
+            showDefItemForm: false,
+            selectDefId: null
+        })
+    }
    
     render() {
         const { groups, defgroup, users, loading, error } = this.state
@@ -235,13 +290,22 @@ class Home extends React.Component {
                     <div className="default_group">
                         <div className="main-container">
                                 {defgroup.map((defg) => (
-                                    <ShowDefGroup
-                                        key={defg.id}
-                                        defgroup={defg}
-                                        expandedId={this.state.expandedId}
-                                        ShowItemBody={this.ShowItemBody}
-                                        toggleCard={this.toggleCard}
-                                    />
+                                    <>
+                                        <ShowDefGroup
+                                            key={defg.id}
+                                            defgroup={defg}
+                                            expandedId={this.state.expandedId}
+                                            ShowItemBody={this.ShowItemBody}
+                                            toggleCard={this.toggleCard}
+                                            openCreateForm={this.openCreateForm}
+                                        />
+                                        {this.state.showDefItemForm && (
+                                            <CreateDefItem
+                                                id={this.state.selectDefId}
+                                                closeCreateForm={this.closeCreateForm}
+                                            />
+                                        )}
+                                    </>
                                 ))}
                         </div>
                     </div>
@@ -256,6 +320,7 @@ class Home extends React.Component {
                                     ShowItemBody={this.ShowItemBody}
                                     toggleCard={this.toggleCard}
                                 />
+                                
                             ))}
                         </div>
                     </div>
