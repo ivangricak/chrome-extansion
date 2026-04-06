@@ -5,7 +5,7 @@ import Header from '../header'
 
 class ShowGroup extends React.Component {
     render() {
-        const { group, expandedId, ShowItemBody, toggleCard,openCreateForm } = this.props;
+        const { group, expandedId, ShowItemBody, toggleCard, openCreateForm, typeOfGroup } = this.props;
         console.log('check:', group);
         const conEdit = group.pivot.role == 0 || group.pivot.role == null;
 
@@ -26,7 +26,7 @@ class ShowGroup extends React.Component {
                                             <button className="update-item nav-link">edit group</button>
                                         </li>
                                         <li className="nav-item">
-                                            <button type="submit" onClick={() => openCreateForm(group.id)} className="create-item nav-link">create item</button>
+                                            <button type="submit" onClick={() => openCreateForm(typeOfGroup, group.id)} className="create-item nav-link">create item</button>
                                         </li>
                                         <li><p className="dropdown-divider"></p></li>
                                         <li className="nav-item">
@@ -67,12 +67,12 @@ class CreateDefItem extends React.Component {
 
     render () {
 
-        const { id, closeCreateForm, token, UpdateDefItems} = this.props;
+        const { id, closeCreateForm, token, loadDefGroupItems, typeOfGroup} = this.props;
         console.log("token: ", token);
+        console.log("type: ", typeOfGroup);
 
         function saveItem() {
-            const tok = chrome.storage.local.get("token", ({token}) => {
-            // const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            chrome.storage.local.get("token", ({token}) => {
                 const formDiv = document.querySelector('.created-div');
                 console.log('show form ather: ', formDiv);
                 
@@ -85,42 +85,24 @@ class CreateDefItem extends React.Component {
                         'Authorization': `Bearer ${token}`,
                         'Accept': 'application/json'
                     },
-                    body: formData //тут треба зробити форму правильну!!!
+                    body: formData
                 })
                 .then(res => res.json())
                 .then(data => {
                     console.log('JSON parsed:', data);
 
-                    formData.append('default_group_id', id);
-
+                    // formData.append('default_group_id', id);
                     // console.log('con>defItem>created: ', window.defGroupItemsCache);
-                    loadDefGroupItems(id);
-                    formDiv.remove();
+                    loadDefGroupItems(typeOfGroup ,id);
+                    // formDiv.remove();
                 })
                 .catch(err => {
                     console.error('Error:', err);
                     alert('Сталася помилка при створенні item-а');
+                    closeCreateForm();
                 });
             });
         }
-
-        function loadDefGroupItems(defgroupId) {
-            fetch(`https://wet-saver-production.up.railway.app/api/defgroups/${defgroupId}/items`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            })
-                .then(res => res.json())
-                .then(data => {
-                    // UpdateDefItems(data);
-                    // console.log('data: ', data.items);
-                    
-                })
-                .catch(err => console.error(err));
-        }
-      
 
         return (
             <form className="created-div">
@@ -137,8 +119,8 @@ class CreateDefItem extends React.Component {
                     </select>
                 </div>
 
-                <input type="hidden" name="default_group_id" value={id} />
-                <input type="hidden" name="group_id" value="" />
+                <input type="hidden" name="default_group_id" value={typeOfGroup === "defgroups" ? id : ""} />
+                <input type="hidden" name="group_id" value={typeOfGroup === "groups" ? id : ""} />
         
                 <div className="mb-3">
                     <label className="form-label">Link</label>
@@ -160,24 +142,24 @@ class CreateDefItem extends React.Component {
 class ShowDefGroup extends React.Component {
     
     render () {
-        const { defgroup, expandedId, ShowItemBody, toggleCard, openCreateForm, items} = this.props;
+        const { defgroups, expandedId, ShowItemBody, toggleCard, openCreateForm, items, typeOfGroup} = this.props;
 
-        console.log('defItem: ', defgroup);
+        console.log('defItem: ', defgroups);
         return (
-            <div className={`card ${expandedId === defgroup.id ? 'expanded' : ''}`} onClick={(e) => toggleCard(e, defgroup.id)} key={defgroup.id}>
+            <div className={`card ${expandedId === defgroups.id ? 'expanded' : ''}`} onClick={(e) => toggleCard(e, defgroups.id)} key={defgroups.id}>
                 <div className="title-row">
-                    <h5 className="mb-3">{defgroup.name}</h5>
+                    <h5 className="mb-3">{defgroups.name}</h5>
                     <div className="dropdown">
                         <button type="button" className="btn" data-bs-toggle="dropdown" aria-expanded="false">
                             <i className="bi bi-three-dots-vertical"></i>
                         </button>
                         <ul className="dropdown-menu">
-                            <li className="nav-item"><button type="submit" className="def-create-item nav-link" onClick={() => openCreateForm(defgroup.id)}>create item</button></li>
+                            <li className="nav-item"><button type="submit" className="def-create-item nav-link" onClick={() => openCreateForm(typeOfGroup, defgroups.id)}>create item</button></li>
                         </ul>
                     </div>
                 </div>
-                <div className="scroll overflow-auto group-scroll" id={`defgroup-${defgroup.id}`}>
-                    {defgroup.items?.map((item) => (
+                <div className="scroll overflow-auto group-scroll" id={`defgroup-${defgroups.id}`}>
+                    {defgroups.items?.map((item) => (
                         <div className="item-copy" key={item.id}>
                             <div className="item" onClick={() => ShowItemBody(item)} id='item'>
                                 <span className="tag">{item.tag || ' '}</span>
@@ -208,12 +190,13 @@ class Home extends React.Component {
         super(props)
 
         this.state = {
+            typeOfGroup: null,
             showDefItemForm: false,
             selectDefId: null,
             selectedItem: [],
             expandedId: null,
             groups: [],
-            defgroup: [],
+            defgroups: [],
             users: [],
             loading: true,
             error: null,
@@ -224,7 +207,6 @@ class Home extends React.Component {
     }
 
     componentDidMount() {
-        // chrome.storage.local.remove("token")
         chrome.storage.local.get("token", ({token}) => {
             this.setState({
                 token: token
@@ -248,7 +230,7 @@ class Home extends React.Component {
             console.log('all', data);
             this.setState({
                 groups: data.groups,
-                defgroup: data.default_groups
+                defgroups: data.default_groups
             })
         })
 
@@ -267,6 +249,30 @@ class Home extends React.Component {
                 })
                 console.error(err)
             });
+        });
+    }
+
+    loadDefGroupItems = (typeOfGroup, defgroupId) => {
+        console.log('id: ', defgroupId);
+        console.log('typeOfGroup: ', typeOfGroup);
+        const token = this.state.token;
+        console.log('tok: ', token);
+        fetch(`https://wet-saver-production.up.railway.app/api/${typeOfGroup === "defgroups" ? "defgroups" : (typeOfGroup === "groups" ? "groups" : "")}/${defgroupId}/items`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            this.UpdateDefItems(typeOfGroup, data);
+            console.log('data: ', data);
+            
+        })
+        .catch(err => {
+            console.error(err)
+            this.closeCreateForm();
         });
     }
 
@@ -331,32 +337,69 @@ class Home extends React.Component {
         })
     }
 
-    openCreateForm = (id) => {
+    openCreateForm = (typeOfGroup, id) => {
         this.setState({
             showDefItemForm: true,
-            selectDefId: id
+            selectDefId: id,
+            typeOfGroup: typeOfGroup
         })
+        console.log('opened');
     }
 
-    // UpdateDefItems = (items) => {
-    //     this.setState(prevState => ({
-    //         defgroup: {
-    //             ...prevState.defgroup,
-    //             items: items
-    //         }
-    //     }));
-    //     console.log('jjj', this.state.defgroup);
-    // }
+    UpdateDefItems = (typeOfGroup, items) => {
+        console.log('itemsss:', items);
+        this.setState(prevState => ({
+            [typeOfGroup]: prevState[typeOfGroup].map(group => 
+                group.id === this.state.selectDefId
+                ? {...group, items: items.items} : group
+            )
+        }));
+        this.closeCreateForm();
+        console.log('Updated', this.state.groups);
+    }
 
     closeCreateForm = () => {
         this.setState({
             showDefItemForm: false,
-            selectDefId: null
+            selectDefId: null,
+            typeOfGroup: null
         })
+        console.log('closed');
+    }
+
+    deleteItem = (item, token) => {
+        const groupId = item.default_group_id ?? item.group_id;
+        const typeOfGroup = item.default_group_id ? 'defgroups' : 'groups';
+
+        fetch(`https://wet-saver-production.up.railway.app/api/items/${item.id}`,  {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            }
+        })
+        .then(data => {
+            console.log('deleted: ', data);
+        })
+        .then(() => {
+            this.setState(prevState => ({
+                [typeOfGroup]: prevState[typeOfGroup].map(group => 
+                    group.id === groupId
+                    ? {
+                        ...group,
+                        items: group.items.filter(i => i.id !== item.id)
+                    } : group
+                )
+            }))
+        this.selectedItemClose();
+        })
+        .catch(err => {
+            console.error('DELETE ERROR:', err);
+        });
     }
    
     render() {
-        const { groups, defgroup, users, loading, error, token } = this.state
+        const { groups, defgroups, users, loading, error, token } = this.state
 
         console.log('groups', groups);
         return (
@@ -369,18 +412,18 @@ class Home extends React.Component {
 
                     <div className="default_group">
                         <div className="main-container">
-                                {defgroup.map((defg) => (
-                                    <>
-                                        <ShowDefGroup
-                                            key={defg.id}
-                                            defgroup={defg}
-                                            expandedId={this.state.expandedId}
-                                            ShowItemBody={this.ShowItemBody}
-                                            toggleCard={this.toggleCard}
-                                            openCreateForm={this.openCreateForm}
-                                            token={token}
-                                        />
-                                    </>
+                                {console.log('def: ', defgroups)}
+                                {defgroups.map((defg) => (
+                                    <ShowDefGroup
+                                        key={defg.id}
+                                        defgroups={defg}
+                                        expandedId={this.state.expandedId}
+                                        ShowItemBody={this.ShowItemBody}
+                                        toggleCard={this.toggleCard}
+                                        openCreateForm={this.openCreateForm}
+                                        token={token}
+                                        typeOfGroup="defgroups"
+                                    />
                                 ))}
                         </div>
                     </div>
@@ -395,6 +438,7 @@ class Home extends React.Component {
                                     ShowItemBody={this.ShowItemBody}
                                     toggleCard={this.toggleCard}
                                     openCreateForm={this.openCreateForm}
+                                    typeOfGroup="groups"
                                 />
                                 
                             ))}
@@ -427,7 +471,7 @@ class Home extends React.Component {
                                                         <textarea className="form-control item-field" rows="6" data-field="description" value={this.state.selectedItem.description} readOnly/>
                                                     </div>
                                                     <button className="btn btn-primary edit-save-btn">Edit</button>
-                                                    <button className="btn btn-danger delete-btn">Delete</button>
+                                                    <button className="btn btn-danger delete-btn" onClick={() => this.deleteItem(this.state.selectedItem, this.state.token)} >Delete</button>
                                                 </div>
                                             </>
                                     </div>
@@ -440,10 +484,12 @@ class Home extends React.Component {
                     <CreateDefItem
                         id={this.state.selectDefId}
                         closeCreateForm={this.closeCreateForm}
-                        UpdateDefItems={this.UpdateDefItems}
+                        // UpdateDefItems={this.UpdateDefItems}
+                        loadDefGroupItems={this.loadDefGroupItems}
                         token={token}
                         items={this.state.items}
-                        />
+                        typeOfGroup={this.state.typeOfGroup}
+                    />
                 )}
             </>
         )
