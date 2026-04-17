@@ -1,11 +1,12 @@
 import React from 'react'
 import '../../css/auth.css'
 import '../../css/main.css'
+import { useForm } from 'react-hook-form';
 import Header from '../header'
 
 class ShowGroup extends React.Component {
     render() {
-        const { group, expandedId, ShowItemBody, toggleCard, openCreateForm, typeOfGroup } = this.props;
+        const { group, expandedId, ShowItemBody, toggleCard, openCreateForm, typeOfGroup, DeleteGroup, openEditGroupForm } = this.props;
         console.log('check:', group);
         const conEdit = group.pivot.role == 0 || group.pivot.role == null;
 
@@ -23,24 +24,26 @@ class ShowGroup extends React.Component {
                             conEdit ? 
                                     <ul className="dropdown-menu">
                                         <li className="nav-item">
-                                            <button className="update-item nav-link">edit group</button>
+                                            <button className="update-item nav-link" onClick={() => openEditGroupForm(group)}>edit group</button>
                                         </li>
                                         <li className="nav-item">
                                             <button type="submit" onClick={() => openCreateForm(typeOfGroup, group.id)} className="create-item nav-link">create item</button>
                                         </li>
                                         <li><p className="dropdown-divider"></p></li>
                                         <li className="nav-item">
-                                            <button type="submit" className="delete-btn-group nav-link">Delete Group</button>
+                                            <button type="submit" className="delete-btn-group nav-link" onClick={() => DeleteGroup(group.id)}>Delete Group</button>
                                         </li>
                                     </ul>
                                 :
                                     <ul className="dropdown-menu">
                                         <li className="nav-item">
                                             <a className="nav-link" href="">Profile</a>
+                                        </li>
+                                        <li className="nav-item">
                                             <button className="nav-link">copy group</button>
-                                            <li className="nav-item">
-                                                <button type="submit" className="delete-btn-group nav-link">Delete Group</button>
-                                            </li>
+                                        </li>
+                                        <li className="nav-item">
+                                            <button type="submit" className="delete-btn-group nav-link" onClick={() => DeleteGroup(group.id)}>Delete Group</button>
                                         </li>
                                     </ul>
                             }
@@ -184,14 +187,73 @@ class ShowDefGroup extends React.Component {
     }
 }
 
+const ShowEditGroupForm = ({ group, closeEditGroupForm, replayEditGroupFrom, categories }) => {
+    const { register, handleSubmit, formState} = useForm({
+        defaultValues: {
+            name: group.name
+        }
+    });
+    const updateGroup = (data) => {
+        chrome.storage.local.get("token", ({token}) => {
+            fetch(`https://wet-saver-production.up.railway.app/api/groups/${group.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(data => {
+                closeEditGroupForm();
+                replayEditGroupFrom(data.group);
+                console.log('JSON parsed:', data.group.name);
+            });
+        });
+        console.log('fast:', data);
+    }
+
+    return (<>
+            <form onSubmit={handleSubmit((updateGroup))} className="created-div p-3 border bg-light rounded">
+            <div className="mb-3">
+                <label className="form-label">Name</label>
+                <input type="text" className="form-control" name="name" placeholder="Group name" {...register('name')}/>
+            </div>
+            
+            <div className="mb-3">
+                <label className="form-label">State:</label>
+                <select className="form-select" name="state" {...register('state')}>
+                    <option value="1" selected={group.state == 1 ? true : false}>Public</option>
+                    <option value="0" selected={group.state == 0 ? true : false}>Private</option>
+                </select>
+            </div>
+
+            <div className="mb-3">
+                <label className="form-label">Categories</label>
+                <select className="form-select category-select" name="category_id" {...register('category_id')}>
+                    {categories.map(cat => (
+                        <option key={cat.id} value={cat.id} selected={cat.id === group.category_id ? true : false}>{cat.name}</option>
+                    ))}
+                </select>
+            </div>
+
+            <button type="submit" className="btn btn-success m-2 update-group-btn">Update</button>
+            <button type="button" className="close-div btn btn-danger m-2" onClick={() => closeEditGroupForm()}>Закрити</button>
+        </form>
+    </>);
+}
+
 class Home extends React.Component {
 
     constructor(props) {
         super(props)
 
         this.state = {
+            categories: [],
             typeOfGroup: null,
             showDefItemForm: false,
+            showEditGroupForm: false,
+            selectedGroup: [],
             selectDefId: null,
             selectedItem: [],
             expandedId: null,
@@ -233,6 +295,16 @@ class Home extends React.Component {
                 defgroups: data.default_groups
             })
         })
+        // CATEGORIES
+        fetch("https://wet-saver-production.up.railway.app/categories")
+        .then(res => res.json())
+        .then(data => {
+            this.setState({
+                categories: data
+            });
+            console.log('categories are loaded: ', data);
+        })
+
 
         fetch("https://wet-saver-production.up.railway.app/users/nicks")
             .then(res => res.json())
@@ -250,6 +322,34 @@ class Home extends React.Component {
                 console.error(err)
             });
         });
+    }
+
+    //DELETE GROUP
+    DeleteGroup = (groupId) => {
+        if(!confirm('Ви точно хочете видалити цю group?')) return;
+        console.log('deleted');
+        const token = this.state.token;
+
+        fetch(`https://wet-saver-production.up.railway.app/api/groups/${groupId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/json'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.success){
+                console.log(`Item ${groupId} deleted in DB`);
+
+                //delete group from cash
+                console.log('con>group>deleted: ', window.groupItemsCache);
+
+            } else {
+                alert('Помилка при видаленні: ' + data.message);
+            }
+        })
+        .catch(err => console.error(err));
     }
 
     loadDefGroupItems = (typeOfGroup, defgroupId) => {
@@ -283,6 +383,32 @@ class Home extends React.Component {
         });
         
         console.log("is", this.state.selectedItem);
+    }
+
+    openEditGroupForm = (group) => {
+        this.setState({
+            showEditGroupForm: true,
+            selectedGroup: group
+        });
+    }
+
+    closeEditGroupForm = () => {
+        this.setState({
+            showEditGroupForm: false,
+            selectedGroup: null
+        });
+    }
+
+    replayEditGroupFrom = (group) => {
+        this.setState(prevState => ({
+            groups: prevState.groups.map(g =>
+              g.id === group.id ? 
+              { ...g, 
+                name: group.name, 
+                category_id: group.category_id, 
+                state: group.state } : g
+            )
+          }));
     }
 
     // Extanded() {
@@ -438,12 +564,15 @@ class Home extends React.Component {
                                     ShowItemBody={this.ShowItemBody}
                                     toggleCard={this.toggleCard}
                                     openCreateForm={this.openCreateForm}
+                                    DeleteGroup={this.DeleteGroup}
+                                    openEditGroupForm={this.openEditGroupForm}
                                     typeOfGroup="groups"
                                 />
                                 
                             ))}
                         </div>
                     </div>
+
                     {this.state.selectedItem != null && Object.keys(this.state.selectedItem).length > 0 && (
                         <div className="modal" id="itemModal-block">
                             <div className="modal-dialog modal-fullscreen">
@@ -471,14 +600,14 @@ class Home extends React.Component {
                                                         <textarea className="form-control item-field" rows="6" data-field="description" value={this.state.selectedItem.description} readOnly/>
                                                     </div>
                                                     <button className="btn btn-primary edit-save-btn">Edit</button>
-                                                    <button className="btn btn-danger delete-btn" onClick={() => this.deleteItem(this.state.selectedItem, this.state.token)} >Delete</button>
+                                                    <button className="btn btn-danger delete-btn" onClick={() => this.deleteItem(this.state.selectedItem, this.state.token)}>Delete</button>
                                                 </div>
                                             </>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        )}
+                    )}
                 </main>
                 {this.state.showDefItemForm && (
                     <CreateDefItem
@@ -489,6 +618,14 @@ class Home extends React.Component {
                         token={token}
                         items={this.state.items}
                         typeOfGroup={this.state.typeOfGroup}
+                    />
+                )}
+                {this.state.showEditGroupForm && (
+                    <ShowEditGroupForm 
+                        group={this.state.selectedGroup}
+                        closeEditGroupForm={this.closeEditGroupForm}
+                        replayEditGroupFrom={this.replayEditGroupFrom}
+                        categories={this.state.categories}
                     />
                 )}
             </>
