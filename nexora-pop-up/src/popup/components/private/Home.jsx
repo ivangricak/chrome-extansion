@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import '../../css/auth.css'
 import '../../css/main.css'
 import { useForm } from 'react-hook-form';
@@ -69,19 +69,11 @@ class ShowGroup extends React.Component {
 class CreateDefItem extends React.Component {
 
     render () {
-
         const { id, closeCreateForm, token, loadDefGroupItems, typeOfGroup} = this.props;
-        console.log("token: ", token);
-        console.log("type: ", typeOfGroup);
-
         function saveItem() {
             chrome.storage.local.get("token", ({token}) => {
-                const formDiv = document.querySelector('.created-div');
-                console.log('show form ather: ', formDiv);
-                
+                const formDiv = document.querySelector('.created-div');                
                 const formData = new FormData(formDiv);
-                console.log('show form: ', formData);
-
                 fetch('https://wet-saver-production.up.railway.app/api/create/item', {
                     method: 'POST',
                     headers: {
@@ -92,12 +84,7 @@ class CreateDefItem extends React.Component {
                 })
                 .then(res => res.json())
                 .then(data => {
-                    console.log('JSON parsed:', data);
-
-                    // formData.append('default_group_id', id);
-                    // console.log('con>defItem>created: ', window.defGroupItemsCache);
                     loadDefGroupItems(typeOfGroup ,id);
-                    // formDiv.remove();
                 })
                 .catch(err => {
                     console.error('Error:', err);
@@ -213,34 +200,70 @@ const ShowEditGroupForm = ({ group, closeEditGroupForm, replayEditGroupFrom, cat
         console.log('fast:', data);
     }
 
-    return (<>
+    return (
+        <>
             <form onSubmit={handleSubmit((updateGroup))} className="created-div p-3 border bg-light rounded">
+                <div className="mb-3">
+                    <label className="form-label">Name</label>
+                    <input type="text" className="form-control" name="name" placeholder="Group name" {...register('name')}/>
+                </div>
+                
+                <div className="mb-3">
+                    <label className="form-label">State:</label>
+                    <select className="form-select" name="state" {...register('state')}>
+                        <option value="1" selected={group.state == 1 ? true : false}>Public</option>
+                        <option value="0" selected={group.state == 0 ? true : false}>Private</option>
+                    </select>
+                </div>
+
+                <div className="mb-3">
+                    <label className="form-label">Categories</label>
+                    <select className="form-select category-select" name="category_id" {...register('category_id')}>
+                        {categories.map(cat => (
+                            <option key={cat.id} value={cat.id} selected={cat.id === group.category_id ? true : false}>{cat.name}</option>
+                        ))}
+                    </select>
+                </div>
+
+                <button type="submit" className="btn btn-success m-2 update-group-btn">Update</button>
+                <button type="button" className="close-div btn btn-danger m-2" onClick={() => closeEditGroupForm()}>Закрити</button>
+            </form>
+        </>);
+}
+
+const CreateGroup = ({ closeCreateGroupForm }) => {
+    const {register, handleSubmit, formState} = useForm();
+
+    const newGroup = (data) => {
+        console.log('new group data: ', data);
+    }
+
+    return (
+    <>
+        <form onSubmit={handleSubmit((newGroup))} className="created-div p-3 border bg-light rounded" style={{maxWidth: "400px", margin:"20px auto"}}>
             <div className="mb-3">
                 <label className="form-label">Name</label>
-                <input type="text" className="form-control" name="name" placeholder="Group name" {...register('name')}/>
+                <input type="text" className="form-control" name="name" {...register('name')} placeholder="Group name" />
             </div>
             
             <div className="mb-3">
                 <label className="form-label">State:</label>
                 <select className="form-select" name="state" {...register('state')}>
-                    <option value="1" selected={group.state == 1 ? true : false}>Public</option>
-                    <option value="0" selected={group.state == 0 ? true : false}>Private</option>
+                    <option value="1">Public</option>
+                    <option value="0">Private</option>
                 </select>
             </div>
 
             <div className="mb-3">
                 <label className="form-label">Categories</label>
-                <select className="form-select category-select" name="category_id" {...register('category_id')}>
-                    {categories.map(cat => (
-                        <option key={cat.id} value={cat.id} selected={cat.id === group.category_id ? true : false}>{cat.name}</option>
-                    ))}
-                </select>
+                <select className="form-select category-select" name="category_id" {...register('category_id')}><option value="3">EX</option></select>
             </div>
 
-            <button type="submit" className="btn btn-success m-2 update-group-btn">Update</button>
-            <button type="button" className="close-div btn btn-danger m-2" onClick={() => closeEditGroupForm()}>Закрити</button>
+            <button type="submit" className="create btn btn-success m-2 create-group">Create</button>
+            <button type="button" className="close-div btn btn-danger m-2" onClick={() => closeCreateGroupForm()}>Закрити</button>
         </form>
-    </>);
+    </>
+    );
 }
 
 class Home extends React.Component {
@@ -249,6 +272,7 @@ class Home extends React.Component {
         super(props)
 
         this.state = {
+            showCreateGroupForm: false,
             categories: [],
             typeOfGroup: null,
             showDefItemForm: false,
@@ -411,38 +435,6 @@ class Home extends React.Component {
           }));
     }
 
-    // Extanded() {
-    //     // const card = e.target.closest('.card');
-    //     // card.classList.add("expanded");
-    //     // document.querySelectorAll('.groups .main-container .card').forEach(c => {
-    //     //     if (c !== card) c.classList.remove("expanded");
-    //     // });
-    //     document.querySelector('.groups .main-container').addEventListener('click', (e) => {
-    //         const card = e.target.closest('.card');
-    //         if (!card) return;
-
-    //         const isExpanded = card.classList.contains('expanded');
-        
-    //         // Якщо клік був на item, copy, dropdown або в меню — ігноруємо
-    //         if (
-                // e.target.closest('.item') || 
-                // e.target.closest('.copy') || 
-                // e.target.closest('.dropdown') || 
-                // e.target.closest('.dropdown-menu')
-    //         ) return;
-        
-    //         // Закриваємо всі інші карточки
-    //         document.querySelectorAll('.groups .main-container .card').forEach(c => {
-    //             if (c !== card) c.classList.remove("expanded");
-    //         });
-        
-    //         // Тогл для поточної
-    //         if (!isExpanded) {
-    //             card.classList.add("expanded");
-    //         } 
-    //     });
-    // }
-
     toggleCard = (e, id) => {
         if (
             e.target.closest('.item') || 
@@ -523,6 +515,18 @@ class Home extends React.Component {
             console.error('DELETE ERROR:', err);
         });
     }
+
+    opneCreateGroupForm = () => {
+        this.setState({
+            showCreateGroupForm: true
+        })
+    }
+
+    closeCreateGroupForm = () => {
+        this.setState({
+            showCreateGroupForm: false
+        })
+    }
    
     render() {
         const { groups, defgroups, users, loading, error, token } = this.state
@@ -555,7 +559,7 @@ class Home extends React.Component {
                     </div>
 
                     <div className="groups">
-                        <div className="main-container mt-4">
+                        <div className="main-container mt-3">
                             {groups.map((group) => (
                                 <ShowGroup
                                     key={group.id}
@@ -626,6 +630,12 @@ class Home extends React.Component {
                         closeEditGroupForm={this.closeEditGroupForm}
                         replayEditGroupFrom={this.replayEditGroupFrom}
                         categories={this.state.categories}
+                    />
+                )}
+                <button className="btn btn-primary btnCreateGroup" onClick={() => this.opneCreateGroupForm()}>+</button>
+                {this.state.showCreateGroupForm && (
+                    <CreateGroup 
+                        closeCreateGroupForm={this.closeCreateGroupForm}
                     />
                 )}
             </>
