@@ -8,7 +8,9 @@ class ShowGroup extends React.Component {
     render() {
         const { group, expandedId, ShowItemBody, toggleCard, typeOfGroup, DeleteGroup, OpenForms } = this.props;
         console.log('check:', group);
-        const conEdit = group.pivot.role == 0 || group.pivot.role == null;
+        const owner = group.users?.find(
+            u => u.pivot && (u.pivot.role === 0 || u.pivot.role === null)
+          ) || null;
 
         // const profileUrl = conEdit ? `/online/profile/${conEdit.id}` : '#';
 
