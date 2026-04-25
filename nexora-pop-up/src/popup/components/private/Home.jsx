@@ -6,7 +6,7 @@ import Header from '../header'
 
 class ShowGroup extends React.Component {
     render() {
-        const { group, expandedId, ShowItemBody, toggleCard, openCreateForm, typeOfGroup, DeleteGroup, openEditGroupForm } = this.props;
+        const { group, expandedId, ShowItemBody, toggleCard, typeOfGroup, DeleteGroup, OpenForms } = this.props;
         console.log('check:', group);
         const conEdit = group.pivot.role == 0 || group.pivot.role == null;
 
@@ -24,10 +24,10 @@ class ShowGroup extends React.Component {
                             conEdit ? 
                                     <ul className="dropdown-menu">
                                         <li className="nav-item">
-                                            <button className="update-item nav-link" onClick={() => openEditGroupForm(group)}>edit group</button>
+                                            <button className="update-item nav-link" onClick={() => OpenForms("EditGroup", null, group)}>edit group</button>
                                         </li>
                                         <li className="nav-item">
-                                            <button type="submit" onClick={() => openCreateForm(typeOfGroup, group.id)} className="create-item nav-link">create item</button>
+                                            <button type="submit" onClick={() => OpenForms("CreateItem", typeOfGroup, group.id)} className="create-item nav-link">create item</button>
                                         </li>
                                         <li><p className="dropdown-divider"></p></li>
                                         <li className="nav-item">
@@ -69,7 +69,7 @@ class ShowGroup extends React.Component {
 class CreateDefItem extends React.Component {
 
     render () {
-        const { id, closeCreateForm, token, loadDefGroupItems, typeOfGroup} = this.props;
+        const { id, CloseForms, token, loadDefGroupItems, typeOfGroup} = this.props;
         function saveItem() {
             chrome.storage.local.get("token", ({token}) => {
                 const formDiv = document.querySelector('.created-div');                
@@ -89,7 +89,7 @@ class CreateDefItem extends React.Component {
                 .catch(err => {
                     console.error('Error:', err);
                     alert('Сталася помилка при створенні item-а');
-                    closeCreateForm();
+                    CloseForms("CloseCreateItem");
                 });
             });
         }
@@ -123,7 +123,7 @@ class CreateDefItem extends React.Component {
                 </div>
         
                 <button type="button" onClick={() => saveItem()} className="create btn btn-success m-2">Create</button>
-                <button type="button" onClick={() => closeCreateForm()} className="close-div btn btn-danger m-2">Закрити</button>
+                <button type="button" onClick={() => CloseForms("CloseCreateItem")} className="close-div btn btn-danger m-2">Закрити</button>
             </form>
         )
     }
@@ -132,7 +132,7 @@ class CreateDefItem extends React.Component {
 class ShowDefGroup extends React.Component {
     
     render () {
-        const { defgroups, expandedId, ShowItemBody, toggleCard, openCreateForm, items, typeOfGroup} = this.props;
+        const { defgroups, expandedId, ShowItemBody, toggleCard, items, typeOfGroup, OpenForms} = this.props;
 
         console.log('defItem: ', defgroups);
         return (
@@ -144,7 +144,7 @@ class ShowDefGroup extends React.Component {
                             <i className="bi bi-three-dots-vertical"></i>
                         </button>
                         <ul className="dropdown-menu">
-                            <li className="nav-item"><button type="submit" className="def-create-item nav-link" onClick={() => openCreateForm(typeOfGroup, defgroups.id)}>create item</button></li>
+                            <li className="nav-item"><button type="submit" className="def-create-item nav-link" onClick={() => OpenForms("CreateItem", typeOfGroup, defgroups.id)}>create item</button></li>
                         </ul>
                     </div>
                 </div>
@@ -174,7 +174,7 @@ class ShowDefGroup extends React.Component {
     }
 }
 
-const ShowEditGroupForm = ({ group, closeEditGroupForm, replayEditGroupFrom, categories }) => {
+const ShowEditGroupForm = ({ group, CloseForms, LoadData, categories }) => {
     const { register, handleSubmit, formState} = useForm({
         defaultValues: {
             name: group.name
@@ -192,8 +192,8 @@ const ShowEditGroupForm = ({ group, closeEditGroupForm, replayEditGroupFrom, cat
             })
             .then(res => res.json())
             .then(data => {
-                closeEditGroupForm();
-                replayEditGroupFrom(data.group);
+                CloseForms("CloseEditGroup");
+                LoadData("LoadEditGroup", null, data.group);
                 console.log('JSON parsed:', data.group.name);
             });
         });
@@ -226,12 +226,12 @@ const ShowEditGroupForm = ({ group, closeEditGroupForm, replayEditGroupFrom, cat
                 </div>
 
                 <button type="submit" className="btn btn-success m-2 update-group-btn">Update</button>
-                <button type="button" className="close-div btn btn-danger m-2" onClick={() => closeEditGroupForm()}>Закрити</button>
+                <button type="button" className="close-div btn btn-danger m-2" onClick={() => CloseForms("CloseEditGroup")}>Закрити</button>
             </form>
         </>);
 }
 
-const CreateGroup = ({ groups, loadGroup,  closeCreateGroupForm }) => {
+const CreateGroup = ({ groups, CloseForms, LoadData }) => {
     const {register, handleSubmit, formState} = useForm();
 
     const newGroup = (data) => {
@@ -248,8 +248,8 @@ const CreateGroup = ({ groups, loadGroup,  closeCreateGroupForm }) => {
             .then(res => res.json())
             .then(data => {
                 console.log('res: ', data);
-                closeCreateGroupForm();
-                loadGroup(data.group);
+                CloseForms("CloseCreateGroup");
+                LoadData("LoadGroup", null, data.group);
             })
             .catch(err => {
                 console.error('Error:', err);
@@ -280,7 +280,7 @@ const CreateGroup = ({ groups, loadGroup,  closeCreateGroupForm }) => {
             </div>
 
             <button type="submit" className="create btn btn-success m-2 create-group">Create</button>
-            <button type="button" className="close-div btn btn-danger m-2" onClick={() => closeCreateGroupForm()}>Закрити</button>
+            <button type="button" className="close-div btn btn-danger m-2" onClick={() => CloseForms("CloseCreateGroup")}>Закрити</button>
         </form>
     </>
     );
@@ -339,6 +339,7 @@ class Home extends React.Component {
                 defgroups: data.default_groups
             })
         })
+
         // CATEGORIES
         fetch("https://wet-saver-production.up.railway.app/categories")
         .then(res => res.json())
@@ -384,130 +385,14 @@ class Home extends React.Component {
         .then(res => res.json())
         .then(data => {
             if(data.success){
-                // console.log(`Item ${groupId} deleted in DB`);
-                this.deleteGroupFromList(data.group_id);
-                // console.log('con>group>deleted: ', data.success);
-
+                this.setState( prevState => ({
+                    groups: prevState.groups.filter(g => g.id !== groupId)
+                }));
             } else {
                 alert('Помилка при видаленні: ' + data.message);
             }
         })
         .catch(err => console.error(err));
-    }
-
-    loadDefGroupItems = (typeOfGroup, defgroupId) => {
-        console.log('id: ', defgroupId);
-        console.log('typeOfGroup: ', typeOfGroup);
-        const token = this.state.token;
-        console.log('tok: ', token);
-        fetch(`https://wet-saver-production.up.railway.app/api/${typeOfGroup === "defgroups" ? "defgroups" : (typeOfGroup === "groups" ? "groups" : "")}/${defgroupId}/items`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(res => res.json())
-        .then(data => {
-            this.UpdateDefItems(typeOfGroup, data);
-            console.log('data: ', data);
-            
-        })
-        .catch(err => {
-            console.error(err)
-            this.closeCreateForm();
-        });
-    }
-
-    deleteGroupFromList = (groupId) => {
-        this.setState( prevState => ({
-            groups: prevState.groups.filter(g => g.id !== groupId)
-        }));
-    }
-
-    ShowItemBody = (item) => {
-        console.log("fdad", item);
-        this.setState({
-            selectedItem: item
-        });
-        
-        console.log("is", this.state.selectedItem);
-    }
-
-    openEditGroupForm = (group) => {
-        this.setState({
-            showEditGroupForm: true,
-            selectedGroup: group
-        });
-    }
-
-    closeEditGroupForm = () => {
-        this.setState({
-            showEditGroupForm: false,
-            selectedGroup: null
-        });
-    }
-
-    replayEditGroupFrom = (group) => {
-        this.setState(prevState => ({
-            groups: prevState.groups.map(g =>
-              g.id === group.id ? 
-              { ...g, 
-                name: group.name, 
-                category_id: group.category_id, 
-                state: group.state } : g
-            )
-          }));
-    }
-
-    toggleCard = (e, id) => {
-        if (
-            e.target.closest('.item') || 
-            e.target.closest('.copy') || 
-            e.target.closest('.dropdown') || 
-            e.target.closest('.dropdown-menu')
-        ) return;
-       
-        this.setState({
-            expandedId: this.state.expandedId === id ? null : id
-        });
-    }
-
-    selectedItemClose() {
-        this.setState({
-            selectedItem: false,
-            expandedId: null
-        })
-    }
-
-    openCreateForm = (typeOfGroup, id) => {
-        this.setState({
-            showDefItemForm: true,
-            selectDefId: id,
-            typeOfGroup: typeOfGroup
-        })
-        console.log('opened');
-    }
-
-    UpdateDefItems = (typeOfGroup, items) => {
-        console.log('itemsss:', items);
-        this.setState(prevState => ({
-            [typeOfGroup]: prevState[typeOfGroup].map(group => 
-                group.id === this.state.selectDefId
-                ? {...group, items: items.items} : group
-            )
-        }));
-        this.closeCreateForm();
-        console.log('Updated', this.state.groups);
-    }
-
-    closeCreateForm = () => {
-        this.setState({
-            showDefItemForm: false,
-            selectDefId: null,
-            typeOfGroup: null
-        })
-        console.log('closed');
     }
 
     deleteItem = (item, token) => {
@@ -534,31 +419,74 @@ class Home extends React.Component {
                     } : group
                 )
             }))
-        this.selectedItemClose();
+        this.CloseForms("CloseSelItem");
         })
         .catch(err => {
             console.error('DELETE ERROR:', err);
         });
     }
-
-    opneCreateGroupForm = () => {
-        this.setState({
-            showCreateGroupForm: true
+    
+    loadDefGroupItems = (typeOfGroup, defgroupId) => {
+        console.log('id: ', defgroupId);
+        console.log('typeOfGroup: ', typeOfGroup);
+        const token = this.state.token;
+        console.log('tok: ', token);
+        fetch(`https://wet-saver-production.up.railway.app/api/${typeOfGroup === "defgroups" ? "defgroups" : (typeOfGroup === "groups" ? "groups" : "")}/${defgroupId}/items`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
         })
+        .then(res => res.json())
+        .then(data => {
+            this.LoadData("LoadItem", typeOfGroup, data);
+        })
+        .catch(err => {
+            console.error(err)
+            this.CloseForms("CloseCreateItem");
+        });
     }
 
-    closeCreateGroupForm = () => {
+    ShowItemBody = (item) => {
+        console.log("fdad", item);
         this.setState({
-            showCreateGroupForm: false
-        })
+            selectedItem: item
+        });
+        
+        console.log("is", this.state.selectedItem);
     }
 
-    loadGroup = (group) => {
-        console.log('dohodyt: ', group);
-        this.setState(prevState => ({
-            groups: [...prevState.groups, group]
-        }));
-        console.log('updated groups: ', this.state.groups);
+    toggleCard = (e, id) => {
+        if (
+            e.target.closest('.item') || 
+            e.target.closest('.copy') || 
+            e.target.closest('.dropdown') || 
+            e.target.closest('.dropdown-menu')
+        ) return;
+       
+        this.setState({
+            expandedId: this.state.expandedId === id ? null : id
+        });
+    }
+
+    OpenForms = (key, type, value) => {
+        { key === "CreateGroup" && this.setState({ showCreateGroupForm: true }) }
+        { key === "EditGroup" && this.setState({ showEditGroupForm: true, selectedGroup: value }) }
+        { key === "CreateItem" && this.setState({ showDefItemForm: true, selectDefId: value, typeOfGroup: type }) }
+    }
+
+    CloseForms = (key) => {
+        { key === "CloseCreateGroup" && this.setState({ showCreateGroupForm: false }) }
+        { key === "CloseEditGroup" &&  this.setState({ showEditGroupForm: false, selectDefId: null }) }
+        { key === "CloseCreateItem" && this.setState({ showDefItemForm: false, selectDefId: null, typeOfGroup: null}) }
+        { key === "CloseSelItem" && this.setState({ selectedItem: false, expandedId: null }) }
+    }
+
+    LoadData = (key, type, value) => {
+        { key === "LoadGroup" &&  this.setState(prevState => ({ groups: [...prevState.groups, value] })) }
+        { key === "LoadItem" &&  this.setState(prevState => ({ [type]: prevState[type].map(group => group.id === this.state.selectDefId ? {...group, items: value.items} : group) })); this.CloseForms("CloseCreateItem");}
+        { key === "LoadEditGroup" && this.setState(prevState => ({ groups: prevState.groups.map(g => g.id === value.id ? { ...g, name: value.name, category_id: value.category_id, state: value.state } : g ) })) }
     }
    
     render() {
@@ -583,7 +511,7 @@ class Home extends React.Component {
                                         expandedId={this.state.expandedId}
                                         ShowItemBody={this.ShowItemBody}
                                         toggleCard={this.toggleCard}
-                                        openCreateForm={this.openCreateForm}
+                                        OpenForms={this.OpenForms}
                                         token={token}
                                         typeOfGroup="defgroups"
                                     />
@@ -600,13 +528,10 @@ class Home extends React.Component {
                                     expandedId={this.state.expandedId}
                                     ShowItemBody={this.ShowItemBody}
                                     toggleCard={this.toggleCard}
-                                    openCreateForm={this.openCreateForm}
+                                    OpenForms={this.OpenForms}
                                     DeleteGroup={this.DeleteGroup}
-                                    openEditGroupForm={this.openEditGroupForm}
                                     typeOfGroup="groups"
-                                    deleteGroupFromList={this.deleteGroupFromList}
                                 />
-                                
                             ))}
                         </div>
                     </div>
@@ -617,7 +542,7 @@ class Home extends React.Component {
                                 <div className="modal-content">
                                     <div className="modal-header">
                                         <h5 className="modal-title" id="itemModalTitle"></h5>
-                                        <button type="button" className="btn-close" onClick={() => this.selectedItemClose()}></button>
+                                        <button type="button" className="btn-close" onClick={() => this.CloseForms("CloseSelItem")}></button>
                                     </div>
                                     <div className="modal-body" id="itemModalBody">
                                         {/* Завантаження... */}
@@ -650,8 +575,7 @@ class Home extends React.Component {
                 {this.state.showDefItemForm && (
                     <CreateDefItem
                         id={this.state.selectDefId}
-                        closeCreateForm={this.closeCreateForm}
-                        // UpdateDefItems={this.UpdateDefItems}
+                        CloseForms={this.CloseForms}
                         loadDefGroupItems={this.loadDefGroupItems}
                         token={token}
                         items={this.state.items}
@@ -661,16 +585,16 @@ class Home extends React.Component {
                 {this.state.showEditGroupForm && (
                     <ShowEditGroupForm 
                         group={this.state.selectedGroup}
-                        closeEditGroupForm={this.closeEditGroupForm}
-                        replayEditGroupFrom={this.replayEditGroupFrom}
+                        CloseForms={this.CloseForms}
+                        LoadData={this.LoadData}
                         categories={this.state.categories}
                     />
                 )}
-                <button className="btn btn-primary btnCreateGroup" onClick={() => this.opneCreateGroupForm()}>+</button>
+                <button className="btn btn-primary btnCreateGroup" onClick={() => this.OpenForms("CreateGroup")}>+</button>
                 {this.state.showCreateGroupForm && (
                     <CreateGroup 
-                        closeCreateGroupForm={this.closeCreateGroupForm}
-                        loadGroup={this.loadGroup}
+                        CloseForms={this.CloseForms}
+                        LoadData={this.LoadData}
                         groups={this.state.groups}
                     />
                 )}
