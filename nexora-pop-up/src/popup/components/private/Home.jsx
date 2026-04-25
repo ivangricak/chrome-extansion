@@ -231,10 +231,30 @@ const ShowEditGroupForm = ({ group, closeEditGroupForm, replayEditGroupFrom, cat
         </>);
 }
 
-const CreateGroup = ({ closeCreateGroupForm }) => {
+const CreateGroup = ({ groups, loadGroup,  closeCreateGroupForm }) => {
     const {register, handleSubmit, formState} = useForm();
 
     const newGroup = (data) => {
+        chrome.storage.local.get("token", ({token}) => {
+            fetch(`https://wet-saver-production.up.railway.app/api/group/create`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(data => {
+                console.log('res: ', data);
+                closeCreateGroupForm();
+                loadGroup(data.group);
+            })
+            .catch(err => {
+                console.error('Error:', err);
+            });
+        });
         console.log('new group data: ', data);
     }
 
@@ -364,10 +384,9 @@ class Home extends React.Component {
         .then(res => res.json())
         .then(data => {
             if(data.success){
-                console.log(`Item ${groupId} deleted in DB`);
-
-                //delete group from cash
-                console.log('con>group>deleted: ', window.groupItemsCache);
+                // console.log(`Item ${groupId} deleted in DB`);
+                this.deleteGroupFromList(data.group_id);
+                // console.log('con>group>deleted: ', data.success);
 
             } else {
                 alert('Помилка при видаленні: ' + data.message);
@@ -398,6 +417,12 @@ class Home extends React.Component {
             console.error(err)
             this.closeCreateForm();
         });
+    }
+
+    deleteGroupFromList = (groupId) => {
+        this.setState( prevState => ({
+            groups: prevState.groups.filter(g => g.id !== groupId)
+        }));
     }
 
     ShowItemBody = (item) => {
@@ -527,6 +552,14 @@ class Home extends React.Component {
             showCreateGroupForm: false
         })
     }
+
+    loadGroup = (group) => {
+        console.log('dohodyt: ', group);
+        this.setState(prevState => ({
+            groups: [...prevState.groups, group]
+        }));
+        console.log('updated groups: ', this.state.groups);
+    }
    
     render() {
         const { groups, defgroups, users, loading, error, token } = this.state
@@ -571,6 +604,7 @@ class Home extends React.Component {
                                     DeleteGroup={this.DeleteGroup}
                                     openEditGroupForm={this.openEditGroupForm}
                                     typeOfGroup="groups"
+                                    deleteGroupFromList={this.deleteGroupFromList}
                                 />
                                 
                             ))}
@@ -636,6 +670,8 @@ class Home extends React.Component {
                 {this.state.showCreateGroupForm && (
                     <CreateGroup 
                         closeCreateGroupForm={this.closeCreateGroupForm}
+                        loadGroup={this.loadGroup}
+                        groups={this.state.groups}
                     />
                 )}
             </>
