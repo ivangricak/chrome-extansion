@@ -7,6 +7,7 @@ class UserLogin extends React.Component {
         login: '',
         password: '',
         error: null,
+        userId: null
     }
 
     handleChange = (e) => {
@@ -15,10 +16,11 @@ class UserLogin extends React.Component {
     }
 
     componentDidMount() {
-        chrome.storage.local.get("token", ({ token }) => {
-          if(token) {
-            this.props.switchAcceptionLogin();
-          }
+        chrome.storage.local.get(["token", "userId"], ({ token, userId }) => {
+            console.log(userId);
+            if(token) {
+                this.props.switchAcceptionLogin();
+            }
         });
       }
 
@@ -37,7 +39,7 @@ class UserLogin extends React.Component {
         .then(data => {
             console.log(data.token + " showed")
             if (data.token) {
-                chrome.storage.local.set({ token: data.token }, () => {
+                chrome.storage.local.set({ token: data.token, userId: data.user }, () => {
                 });
                 this.props.switchAcceptionLogin();
             } else {

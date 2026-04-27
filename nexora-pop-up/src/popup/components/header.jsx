@@ -24,7 +24,7 @@ class Header extends React.Component {
                                     <a className="nav-link" onClick={this.props.switchToOpenProfile}>Profile</a>
                                 </li>
                                 <li className="nav-item">
-                                    <a className="nav-link" href="{{ route('home.welcome') }}">Main</a>
+                                    <a className="nav-link">Main</a>
                                 </li>
                                 <li className="nav-item dropdown">
                                     <a className="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">

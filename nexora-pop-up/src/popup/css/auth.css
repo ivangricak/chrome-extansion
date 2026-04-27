@@ -65,3 +65,49 @@ a {
 .navbar-expand-md {
     width: 100%;
 }
+
+.profile-name {
+    display: flex;
+    justify-content: space-around;
+}
+
+.profile-stats {
+    border: 2px solid #000;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-around;
+    padding: 15px 0;
+    margin-bottom: 15px;
+}
+.profile-stats div {
+    text-align: center;
+}
+.profile-stats h5 {
+    margin: 0;
+    font-weight: 600;
+}
+.profile-stats p {
+    margin: 0;
+    color: #6c757d;
+    text-transform: lowercase;
+}
+.follow-btn {
+    background-color: #000;
+    color: #fff;
+    border: none;
+    width: 100%;
+    border-radius: 10px;
+    font-weight: 600;
+    padding: 10px 0;
+}
+
+.following-btn {
+    background-color: #ffffff;
+    color: #000000;
+    border: none;
+    width: 100%;
+    border-radius: 10px;
+    border: 2px black solid;
+    font-weight: 600;
+    padding: 10px 0;
+}

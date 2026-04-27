@@ -3,6 +3,60 @@ import '../../css/auth.css'
 
 import Header from '../header'
 
+class ShowGroup extends React.Component {
+    render() {
+        const { group, me, expandedId, toggleCard, ShowItemBody, switchToOpenProfile } = this.props;
+        console.log('check:', group);
+        // const conEdit = group.users.pivot.role == 0 || group.users.pivot.role == null;
+        const conEdit = group.users.some(u => u.pivot && Number(u.id) === Number(me.id) && (u.pivot.role === 0 || u.pivot.role === null));
+
+        return (
+            <div className={`card ${expandedId === group.id ? 'expanded' : ''}`} onClick={(e) => toggleCard(e, group.id)} key={group.id}>
+                <div className="title-row">
+                    <h5 className="group-title">{group.name}</h5>
+                    <div className="dropdown">
+                        <button type="button" className="btn" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i className="bi bi-three-dots-vertical"></i>
+                        </button>
+                            {
+                            conEdit ? 
+                                <ul className="dropdown-menu">
+                                    <li className="nav-item">
+                                        <a className="nav-link" onClick={switchToOpenProfile}>Profile</a>
+                                    </li>
+                                </ul>
+                                :
+                                <ul className="dropdown-menu">
+                                    <li className="nav-item">
+                                        <a className="nav-link" onClick={switchToOpenProfile}>Profile</a>
+                                    </li>
+                                    <li className="nav-item">
+                                        <button type="submit" className="follow-btn-group nav-link">Follow Group</button>
+                                    </li>
+                                    <li className="nav-item">
+                                        <button className='nav-link'>Copy group</button>
+                                    </li>
+                                </ul>
+                            }
+                    </div>
+                </div>
+                <div className="scroll overflow-auto group-scroll">
+                    {group.items?.map((item) => (
+                        <div className="item-copy" key={item.id}>
+                            <div className="item" onClick={() => ShowItemBody(item)} id='item'>
+                                <span className="tag">{item.tag || ' '}</span>
+                                <span className='item-name'>{item.name}</span>
+                            </div>
+                            <button className="copy" data-link={item.link} type="button">copy</button>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        )
+    }
+    
+}
+
 class Online extends React.Component {
     constructor(props) {
         super(props)
@@ -38,7 +92,8 @@ class Online extends React.Component {
             .then(data => {
                 console.log('Online JSON: ', data)
                 this.setState({
-                    groups: data.groups
+                    groups: data.groups,
+                    me: data.me
                 })
             })
 
@@ -93,6 +148,9 @@ class Online extends React.Component {
     render() {
         const{groups, me, loading, error} = this.state;
 
+        console.log('group checker: ', groups);
+        // const conEdit = group.pivot.role == 0 || group.pivot.role == null;
+
         return (
             <>
                 <main className="overflow-auto" style={{ maxHeight: "450px" }}>
@@ -105,27 +163,15 @@ class Online extends React.Component {
                         <div className="main-container mt-4">
                             {groups.map((group) => (
                                 <>
-                                    <div className={`card ${this.state.expandedId === group.id ? 'expanded' : ''}`} onClick={(e) => this.toggleCard(e, group.id)} id="card" key={group.id}>
-                                        <div className="title-row">
-                                            <h5 className="group-title">{group.name}</h5>
-                                            <div className="dropdown">
-                                                <button type="button" className="btn" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <i className="bi bi-three-dots-vertical"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div className="scroll overflow-auto group-scroll">
-                                            {group.items.map((item) => (
-                                                <div className="item-copy" id="item-copy" key={item.id}>
-                                                    <div className="item" onClick={() => this.ShowItemBody(item)} id='item'>
-                                                        <span className="tag">{item.tag || ' '}</span>
-                                                        <span className='item-name'>{item.name}</span>
-                                                    </div>
-                                                    <button className="copy" data-link={item.link} type="button">copy</button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
+                                    <ShowGroup
+                                        key={group.id}
+                                        group={group}
+                                        me={me}
+                                        expandedId={this.state.expandedId}
+                                        ShowItemBody={this.ShowItemBody}
+                                        toggleCard={this.toggleCard}
+                                        switchToOpenProfile={this.props.switchToOpenProfile}
+                                    />
                                 </>
                             ))}
                         </div>
@@ -157,8 +203,6 @@ class Online extends React.Component {
                                                     <div className="input-group mb-3">
                                                         <textarea className="form-control item-field" rows="6" data-field="description" value={this.state.selectedItem.description} readOnly/>
                                                     </div>
-                                                    <button className="btn btn-primary edit-save-btn">Edit</button>
-                                                    <button className="btn btn-danger delete-btn">Delete</button>
                                                 </div>
                                             </>
                                     </div>

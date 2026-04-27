@@ -14,7 +14,8 @@ class Popup extends React.Component {
         this.state = {
             activeForm: "login",
             accept: false,
-            title: "Home"
+            title: "Home",
+            userId: null
         }
 
         this.OpenLogin = this.OpenLogin.bind(this)
@@ -54,13 +55,19 @@ class Popup extends React.Component {
         this.setState({ activeForm: "login" });
     }
 
+    componentDidMount() {
+        chrome.storage.local.get("userId", ({ userId }) => {
+            console.log('iDD: ', userId);
+            this.setState({ userId });
+        });
+    }
     
     render() {
-        const { activeForm } = this.state;
-    
+        const { activeForm, userId } = this.state;
+
         if (activeForm === "login") {
             return (
-                <UserLogin 
+                <UserLogin
                     switchToRegister={this.OpenRegister}
                     switchAcceptionLogin={this.AcceptionLogin}
                 />
@@ -78,19 +85,18 @@ class Popup extends React.Component {
     
         if (activeForm === "register") {
             return (
-                <>
                 <UserRegister 
                     switchToLogin={this.OpenLogin}
                     switchAcceptionLogin={this.AcceptionLogin}
                 />
-                </>
             );
         }
     
         if (activeForm === "home") {
             return (
                 <>
-                    <Header 
+                    <Header
+                        userId={userId}
                         title={this.props.title}
                         switchToOpenOnline={this.OpenOnline}
                         switchAcceptionLogin={this.AcceptionLogin}
@@ -107,7 +113,8 @@ class Popup extends React.Component {
         if (activeForm === "online") {
             return (
                 <>
-                    <Header 
+                    <Header
+                        userId={userId}
                         title={this.props.title}
                         switchToOpenOnline={this.OpenOnline}
                         switchAcceptionLogin={this.AcceptionLogin}
@@ -115,7 +122,9 @@ class Popup extends React.Component {
                         switchToLogin={this.OpenLogin}
                         switchToLogOut={this.AcceptionLogOut}
                     />
-                    <Online />
+                    <Online 
+                        switchToOpenProfile={this.OpenProfile}
+                    />
                 </>
             )
         }
@@ -124,6 +133,7 @@ class Popup extends React.Component {
             return (
                 <>
                     <Header 
+                        userId={userId}
                         title={this.props.title}
                         switchToOpenOnline={this.OpenOnline}
                         switchAcceptionLogin={this.AcceptionLogin}
@@ -131,7 +141,9 @@ class Popup extends React.Component {
                         switchToLogin={this.OpenLogin}
                         switchToLogOut={this.AcceptionLogOut}
                     />
-                    <Profile/>
+                    <Profile 
+                        userId={userId}
+                    />
                 </>
             )
         }
