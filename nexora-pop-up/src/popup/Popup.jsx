@@ -7,6 +7,7 @@ import Home from './components/private/home'
 import Header from './components/header'
 import Online from './components/online/Online'
 import Profile from './components/private/profile/Profile'
+import OnlineProfile from './components/online/profile/Profile'
 
 class Popup extends React.Component {
     constructor(props) {
@@ -15,7 +16,8 @@ class Popup extends React.Component {
             activeForm: "login",
             accept: false,
             title: "Home",
-            userId: null
+            owner: null,
+            user: null
         }
 
         this.OpenLogin = this.OpenLogin.bind(this)
@@ -23,6 +25,7 @@ class Popup extends React.Component {
         this.AcceptionLogin = this.AcceptionLogin.bind(this)
         this.OpenOnline = this.OpenOnline.bind(this)
         this.OpenProfile = this.OpenProfile.bind(this)
+        this.OpenOnlineProfile = this.OpenOnlineProfile.bind(this)
         this.AcceptionLogOut = this.AcceptionLogOut.bind(this)
     }
     
@@ -38,8 +41,11 @@ class Popup extends React.Component {
     OpenOnline() {
         this.setState({activeForm: "online"})
     }
-    OpenProfile() {
-        this.setState({activeForm: "profile"})
+    OpenProfile(owner) {
+        this.setState({activeForm: "profile", owner})
+    }
+    OpenOnlineProfile(owner) {
+        this.setState({activeForm: "onlineProfile", owner})
     }
     AcceptionLogOut() {
         chrome.storage.local.get("token", ({ token }) => {
@@ -58,12 +64,12 @@ class Popup extends React.Component {
     componentDidMount() {
         chrome.storage.local.get("userId", ({ userId }) => {
             console.log('iDD: ', userId);
-            this.setState({ userId });
+            this.setState({ owner: userId, user: userId });
         });
     }
     
     render() {
-        const { activeForm, userId } = this.state;
+        const { activeForm, owner, user } = this.state;
 
         if (activeForm === "login") {
             return (
@@ -96,7 +102,8 @@ class Popup extends React.Component {
             return (
                 <>
                     <Header
-                        userId={userId}
+                        user={user}
+                        owner={owner}
                         title={this.props.title}
                         switchToOpenOnline={this.OpenOnline}
                         switchAcceptionLogin={this.AcceptionLogin}
@@ -114,7 +121,8 @@ class Popup extends React.Component {
             return (
                 <>
                     <Header
-                        userId={userId}
+                        user={user}
+                        owner={owner}
                         title={this.props.title}
                         switchToOpenOnline={this.OpenOnline}
                         switchAcceptionLogin={this.AcceptionLogin}
@@ -124,6 +132,7 @@ class Popup extends React.Component {
                     />
                     <Online 
                         switchToOpenProfile={this.OpenProfile}
+                        switchToOpenOnlineProfile={this.OpenOnlineProfile}
                     />
                 </>
             )
@@ -133,7 +142,8 @@ class Popup extends React.Component {
             return (
                 <>
                     <Header 
-                        userId={userId}
+                        user={user}
+                        owner={owner}
                         title={this.props.title}
                         switchToOpenOnline={this.OpenOnline}
                         switchAcceptionLogin={this.AcceptionLogin}
@@ -141,8 +151,28 @@ class Popup extends React.Component {
                         switchToLogin={this.OpenLogin}
                         switchToLogOut={this.AcceptionLogOut}
                     />
-                    <Profile 
-                        userId={userId}
+                    <Profile
+                        owner={owner}
+                    />
+                </>
+            )
+        }
+
+        if (activeForm === "onlineProfile") {
+            return (
+                <>
+                    <Header 
+                        user={user}
+                        owner={owner}
+                        title={this.props.title}
+                        switchToOpenOnline={this.OpenOnline}
+                        switchToOpenProfile={this.OpenProfile}
+                        switchAcceptionLogin={this.AcceptionLogin}
+                        switchToLogin={this.OpenLogin}
+                        switchToLogOut={this.AcceptionLogOut}
+                    />
+                    <OnlineProfile
+                        owner={owner}
                     />
                 </>
             )

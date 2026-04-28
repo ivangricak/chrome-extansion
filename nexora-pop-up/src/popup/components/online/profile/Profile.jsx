@@ -3,7 +3,7 @@ import '../../../css/auth.css'
 
 
 
-class Profile extends React.Component {
+class OnlineProfile extends React.Component {
 
     constructor(props) {
         super(props)
@@ -14,14 +14,16 @@ class Profile extends React.Component {
             GroupsCount: null,
             isFollowing: false,
             user: [],
+            owner: []
         }
     }
 
     componentDidMount() {
-        chrome.storage.local.get(["token", "userId"], ({token, userId}) => {
+        const { owner } = this.props;
+        chrome.storage.local.get(["token"], ({token}) => {
 
-            console.log('look user: ', userId);
-            fetch(`https://wet-saver-production.up.railway.app/api/online/profile/${userId.id}`, {
+            console.log('look user: ', owner);
+            fetch(`https://wet-saver-production.up.railway.app/api/online/profile/${owner.id}`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -36,6 +38,7 @@ class Profile extends React.Component {
                     FollowingCount: data.FollowingCount,
                     GroupsCount: data.GroupsCount,
                     isFollowing: data.isFollowing,
+                    owner: data.owner, 
                     user: data.user
                 });
 
@@ -45,13 +48,13 @@ class Profile extends React.Component {
     }
 
     render() {
-        const { FollowersCount, FollowingCount, GroupsCount, isFollowing, user } = this.state;
+        const { FollowersCount, FollowingCount, GroupsCount, isFollowing, user, owner } = this.state;
         return (
             <>
                 <main>
                     <div className="d-flex justify-content-center">
                         <div className="col-10 col-sm-6 col-md-4">
-                            <h1 className="profile-name">{user.nick}</h1>
+                            <h1 className="profile-name">{owner.nick}</h1>
                             <div className="profile-stats">
                                 <div>
                                     <h5>{GroupsCount}</h5>
@@ -67,20 +70,20 @@ class Profile extends React.Component {
                                 </div>
                             </div>
 
-                            {/* <div id="follow-block">
+                            <div id="follow-block">
                                 {isFollowing ?  <button id="following-btn" className="following-btn"> Unfollow </button> 
                                 : 
                                 <button id="follow-btn" className="follow-btn"> Follow </button>}
-                            </div> */}
+                            </div>
 
                             
-                            <div className="mb-3 row">
+                            {/* <div className="mb-3 row">
                                 <label for="nick" className="col-sm-2 col-form-label">Nick</label>
                                 <div className="col-sm-10">
                                     <input type="text" className="form-control" id="nick" name="nick" value="" />
                                 </div>
                                 <button type="submit" className="btn btn-primary mt-3">UpDate</button>
-                            </div>
+                            </div> */}
                         </div>
                     </div>
                 </main>
@@ -88,4 +91,4 @@ class Profile extends React.Component {
     )}
 }
 
-export default Profile
+export default OnlineProfile

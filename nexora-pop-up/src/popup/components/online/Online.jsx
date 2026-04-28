@@ -5,10 +5,12 @@ import Header from '../header'
 
 class ShowGroup extends React.Component {
     render() {
-        const { group, me, expandedId, toggleCard, ShowItemBody, switchToOpenProfile } = this.props;
+        const { group, me, expandedId, toggleCard, ShowItemBody, switchToOpenOnlineProfile } = this.props;
         console.log('check:', group);
         // const conEdit = group.users.pivot.role == 0 || group.users.pivot.role == null;
         const conEdit = group.users.some(u => u.pivot && Number(u.id) === Number(me.id) && (u.pivot.role === 0 || u.pivot.role === null));
+        const owner = group.users.find(u => u.pivot.role === 0 || u.pivot.role === null);
+        console.log('owner: ', owner);
 
         return (
             <div className={`card ${expandedId === group.id ? 'expanded' : ''}`} onClick={(e) => toggleCard(e, group.id)} key={group.id}>
@@ -22,13 +24,13 @@ class ShowGroup extends React.Component {
                             conEdit ? 
                                 <ul className="dropdown-menu">
                                     <li className="nav-item">
-                                        <a className="nav-link" onClick={switchToOpenProfile}>Profile</a>
+                                        <a className="nav-link" onClick={() => switchToOpenOnlineProfile(owner)}>Profile</a>
                                     </li>
                                 </ul>
                                 :
                                 <ul className="dropdown-menu">
                                     <li className="nav-item">
-                                        <a className="nav-link" onClick={switchToOpenProfile}>Profile</a>
+                                        <a className="nav-link" onClick={() => switchToOpenOnlineProfile(owner)}>Profile</a>
                                     </li>
                                     <li className="nav-item">
                                         <button type="submit" className="follow-btn-group nav-link">Follow Group</button>
@@ -170,7 +172,7 @@ class Online extends React.Component {
                                         expandedId={this.state.expandedId}
                                         ShowItemBody={this.ShowItemBody}
                                         toggleCard={this.toggleCard}
-                                        switchToOpenProfile={this.props.switchToOpenProfile}
+                                        switchToOpenOnlineProfile={this.props.switchToOpenOnlineProfile}
                                     />
                                 </>
                             ))}
