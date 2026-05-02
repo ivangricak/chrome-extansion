@@ -5,7 +5,7 @@ import Header from '../header'
 
 class ShowGroup extends React.Component {
     render() {
-        const { group, me, expandedId, toggleCard, ShowItemBody, switchToOpenOnlineProfile } = this.props;
+        const { group, me, expandedId, toggleCard, ShowItemBody, switchToOpenOnlineProfile, FollowGroup, CopyGroup } = this.props;
         console.log('check:', group);
         // const conEdit = group.users.pivot.role == 0 || group.users.pivot.role == null;
         const conEdit = group.users.some(u => u.pivot && Number(u.id) === Number(me.id) && (u.pivot.role === 0 || u.pivot.role === null));
@@ -33,10 +33,10 @@ class ShowGroup extends React.Component {
                                         <a className="nav-link" onClick={() => switchToOpenOnlineProfile(owner)}>Profile</a>
                                     </li>
                                     <li className="nav-item">
-                                        <button type="submit" className="follow-btn-group nav-link">Follow Group</button>
+                                        <button type="submit" className="follow-btn-group nav-link" onClick={() => FollowGroup(group.id)}>Follow Group</button>
                                     </li>
                                     <li className="nav-item">
-                                        <button className='nav-link'>Copy group</button>
+                                        <button className='nav-link' onClick={() => CopyGroup(group.id)}>Copy group</button>
                                     </li>
                                 </ul>
                             }
@@ -118,6 +118,42 @@ class Online extends React.Component {
         });
     }
 
+    FollowGroup = (groupId) => {
+        console.log('isss', groupId);
+        chrome.storage.local.get("token", ({token}) => {
+            fetch('https://wet-saver-production.up.railway.app/api/follow/group/add', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    group_id: groupId
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                console.log('Response:', data);
+            })
+        })
+    }
+
+    CopyGroup = (groupId) => {
+        chrome.storage.local.get("token", ({token}) => {
+            fetch(`https://wet-saver-production.up.railway.app/api/groups/${groupId}/copy`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                console.log('issd: ', data);
+            })
+        })
+    }
+
     ShowItemBody = (item) => {
         console.log("fdad", item);
         this.setState({
@@ -171,8 +207,10 @@ class Online extends React.Component {
                                         me={me}
                                         expandedId={this.state.expandedId}
                                         ShowItemBody={this.ShowItemBody}
+                                        FollowGroup={this.FollowGroup}
                                         toggleCard={this.toggleCard}
                                         switchToOpenOnlineProfile={this.props.switchToOpenOnlineProfile}
+                                        CopyGroup={this.CopyGroup}
                                     />
                                 </>
                             ))}

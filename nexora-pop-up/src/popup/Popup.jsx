@@ -8,6 +8,7 @@ import Header from './components/header'
 import Online from './components/online/Online'
 import Profile from './components/private/profile/Profile'
 import OnlineProfile from './components/online/profile/Profile'
+import Test from './components/test/Test'
 
 class Popup extends React.Component {
     constructor(props) {
@@ -27,6 +28,7 @@ class Popup extends React.Component {
         this.OpenProfile = this.OpenProfile.bind(this)
         this.OpenOnlineProfile = this.OpenOnlineProfile.bind(this)
         this.AcceptionLogOut = this.AcceptionLogOut.bind(this)
+        this.OpenTest = this.OpenTest.bind(this)
     }
     
     OpenLogin() {
@@ -59,6 +61,10 @@ class Popup extends React.Component {
         });
         chrome.storage.local.remove("token");
         this.setState({ activeForm: "login" });
+    }
+
+    OpenTest() {
+        this.setState({activeForm: "test"})
     }
 
     componentDidMount() {
@@ -111,6 +117,7 @@ class Popup extends React.Component {
                         switchToLogin={this.OpenLogin}
                         switchToRegister={this.OpenRegister}
                         switchToLogOut={this.AcceptionLogOut}
+                        switchToOpenTest={this.OpenTest}
                     />
                     <Home/>
                 </>
@@ -129,6 +136,7 @@ class Popup extends React.Component {
                         switchToOpenProfile={this.OpenProfile}
                         switchToLogin={this.OpenLogin}
                         switchToLogOut={this.AcceptionLogOut}
+                        switchToOpenTest={this.OpenTest}
                     />
                     <Online 
                         switchToOpenProfile={this.OpenProfile}
@@ -150,6 +158,7 @@ class Popup extends React.Component {
                         switchToOpenProfile={this.OpenProfile}
                         switchToLogin={this.OpenLogin}
                         switchToLogOut={this.AcceptionLogOut}
+                        switchToOpenTest={this.OpenTest}
                     />
                     <Profile
                         owner={owner}
@@ -170,11 +179,18 @@ class Popup extends React.Component {
                         switchAcceptionLogin={this.AcceptionLogin}
                         switchToLogin={this.OpenLogin}
                         switchToLogOut={this.AcceptionLogOut}
+                        switchToOpenTest={this.OpenTest}
                     />
                     <OnlineProfile
                         owner={owner}
                     />
                 </>
+            )
+        }
+
+        if (activeForm === "test") {
+            return (
+                <Test />
             )
         }
     

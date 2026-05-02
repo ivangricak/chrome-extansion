@@ -3,6 +3,7 @@ import '../../css/auth.css'
 import '../../css/main.css'
 import { useForm } from 'react-hook-form';
 import Header from '../header'
+import Fab from '../test/test'
 
 class ShowGroup extends React.Component {
     render() {
@@ -591,6 +592,8 @@ class Home extends React.Component {
                     />
                 )}
                 <button className="btn btn-primary btnCreateGroup" onClick={() => this.OpenForms("CreateGroup")}>+</button>
+                {/* <Fab OpenForms={this.OpenForms} /> */}
+                
                 {this.state.showCreateGroupForm && (
                     <CreateGroup 
                         CloseForms={this.CloseForms}

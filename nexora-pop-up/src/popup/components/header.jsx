@@ -24,6 +24,9 @@ class Header extends React.Component {
                                     <a className="nav-link" onClick={() => this.props.switchToOpenProfile(this.props.user)}>Profile</a>
                                 </li>
                                 <li className="nav-item">
+                                    <a className="nav-link" onClick={this.props.switchToOpenTest}>Test</a>
+                                </li>
+                                <li className="nav-item">
                                     <a className="nav-link">Main</a>
                                 </li>
                                 <li className="nav-item dropdown">
