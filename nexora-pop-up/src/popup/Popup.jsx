@@ -28,6 +28,7 @@ class Popup extends React.Component {
         this.OpenProfile = this.OpenProfile.bind(this)
         this.OpenOnlineProfile = this.OpenOnlineProfile.bind(this)
         this.AcceptionLogOut = this.AcceptionLogOut.bind(this)
+        this.OpenMainPage = this.OpenMainPage.bind(this)
         this.OpenTest = this.OpenTest.bind(this)
     }
     
@@ -61,6 +62,13 @@ class Popup extends React.Component {
         });
         chrome.storage.local.remove("token");
         this.setState({ activeForm: "login" });
+    }
+
+    OpenMainPage() {
+        console.log('open main page: ');
+        chrome.tabs.create({
+            url: 'https://wet-saver-production.up.railway.app'
+        });
     }
 
     OpenTest() {
@@ -111,6 +119,7 @@ class Popup extends React.Component {
                         user={user}
                         owner={owner}
                         title={this.props.title}
+                        switchToOpenMainPage={this.OpenMainPage}
                         switchToOpenOnline={this.OpenOnline}
                         switchAcceptionLogin={this.AcceptionLogin}
                         switchToOpenProfile={this.OpenProfile}

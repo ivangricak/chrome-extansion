@@ -27,7 +27,7 @@ class Header extends React.Component {
                                     <a className="nav-link" onClick={this.props.switchToOpenTest}>Test</a>
                                 </li>
                                 <li className="nav-item">
-                                    <a className="nav-link">Main</a>
+                                    <a className="nav-link" onClick={this.props.switchToOpenMainPage}>Main</a>
                                 </li>
                                 <li className="nav-item dropdown">
                                     <a className="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
