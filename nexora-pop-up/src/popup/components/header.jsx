@@ -15,7 +15,7 @@ class Header extends React.Component {
                         <div className="collapse navbar-collapse" id="navbarNavDropdown">
                             <ul className="navbar-nav">
                                 <li className="nav-item">
-                                    <a className="nav-link active" aria-current="page" onClick={this.props.switchAcceptionLogin}>Home</a>
+                                    <a className="nav-link active" aria-current="page" onClick={this.props.switchToOpenHome}>Home</a>
                                 </li>
                                 <li className="nav-item">
                                     <a className="nav-link" onClick={this.props.switchToOpenOnline}>Online</a>
@@ -24,7 +24,7 @@ class Header extends React.Component {
                                     <a className="nav-link" onClick={() => this.props.switchToOpenProfile(this.props.user)}>Profile</a>
                                 </li>
                                 <li className="nav-item">
-                                    <a className="nav-link" onClick={this.props.switchToOpenTest}>Test</a>
+                                    <a className="nav-link" onClick={this.props.switchToOpenFastView}>Test</a>
                                 </li>
                                 <li className="nav-item">
                                     <a className="nav-link" onClick={this.props.switchToOpenMainPage}>Main</a>

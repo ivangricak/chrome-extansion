@@ -9,6 +9,7 @@ import Online from './components/online/Online'
 import Profile from './components/private/profile/Profile'
 import OnlineProfile from './components/online/profile/Profile'
 import Test from './components/test/Test'
+import FastView from './components/private/FastView'
 
 class Popup extends React.Component {
     constructor(props) {
@@ -21,6 +22,7 @@ class Popup extends React.Component {
             user: null
         }
 
+        this.OpenHome = this.OpenHome.bind(this)
         this.OpenLogin = this.OpenLogin.bind(this)
         this.OpenRegister = this.OpenRegister.bind(this)
         this.AcceptionLogin = this.AcceptionLogin.bind(this)
@@ -30,6 +32,7 @@ class Popup extends React.Component {
         this.AcceptionLogOut = this.AcceptionLogOut.bind(this)
         this.OpenMainPage = this.OpenMainPage.bind(this)
         this.OpenTest = this.OpenTest.bind(this)
+        this.OpenFastView = this.OpenFastView.bind(this)
     }
     
     OpenLogin() {
@@ -39,15 +42,25 @@ class Popup extends React.Component {
         this.setState({activeForm: 'register'})
     }
     AcceptionLogin() {
-        this.setState({activeForm: 'home'})
+        chrome.storage.local.get(["activeForm"], (result) => {
+            {result.activeForm === 'fastView' ? this.setState({activeForm: "fastView"}) : this.setState({activeForm: 'home'}) }
+            // this.setState({activeForm: 'home'})
+        });
+    }
+    OpenHome() {
+        chrome.storage.local.set({"activeForm": "home"});
+        this.setState({activeForm: "home"}) 
     }
     OpenOnline() {
+        chrome.storage.local.set({"activeForm": "home"});
         this.setState({activeForm: "online"})
     }
     OpenProfile(owner) {
+        chrome.storage.local.set({"activeForm": "home"});
         this.setState({activeForm: "profile", owner})
     }
     OpenOnlineProfile(owner) {
+        chrome.storage.local.set({"activeForm": "home"});
         this.setState({activeForm: "onlineProfile", owner})
     }
     AcceptionLogOut() {
@@ -60,8 +73,13 @@ class Popup extends React.Component {
                 }
             });
         });
-        chrome.storage.local.remove("token");
+        chrome.storage.local.remove(["token", "activeForm", "userId", "token"]);
         this.setState({ activeForm: "login" });
+    }
+
+    OpenFastView() {
+        chrome.storage.local.set({"activeForm": "fastView"});
+        this.setState({activeForm: "fastView"});
     }
 
     OpenMainPage() {
@@ -76,9 +94,21 @@ class Popup extends React.Component {
     }
 
     componentDidMount() {
-        chrome.storage.local.get("userId", ({ userId }) => {
-            console.log('iDD: ', userId);
-            this.setState({ owner: userId, user: userId });
+        chrome.storage.local.get(["activeForm", "userId"], (result) => {
+            const newState = {
+                owner: result.userId,
+                user: result.userId
+            };
+    
+            if (result.activeForm) {
+                if (result.activeForm === "fastView") {
+                    newState.activeForm = "fastView";
+                } else {
+                    newState.activeForm = "home";
+                }
+            }
+    
+            this.setState(newState);
         });
     }
     
@@ -119,6 +149,7 @@ class Popup extends React.Component {
                         user={user}
                         owner={owner}
                         title={this.props.title}
+                        switchToOpenHome={this.OpenHome}
                         switchToOpenMainPage={this.OpenMainPage}
                         switchToOpenOnline={this.OpenOnline}
                         switchAcceptionLogin={this.AcceptionLogin}
@@ -127,6 +158,7 @@ class Popup extends React.Component {
                         switchToRegister={this.OpenRegister}
                         switchToLogOut={this.AcceptionLogOut}
                         switchToOpenTest={this.OpenTest}
+                        switchToOpenFastView={this.OpenFastView}
                     />
                     <Home/>
                 </>
@@ -140,6 +172,7 @@ class Popup extends React.Component {
                         user={user}
                         owner={owner}
                         title={this.props.title}
+                        switchToOpenHome={this.OpenHome}
                         switchToOpenOnline={this.OpenOnline}
                         switchAcceptionLogin={this.AcceptionLogin}
                         switchToOpenProfile={this.OpenProfile}
@@ -162,6 +195,7 @@ class Popup extends React.Component {
                         user={user}
                         owner={owner}
                         title={this.props.title}
+                        switchToOpenHome={this.OpenHome}
                         switchToOpenOnline={this.OpenOnline}
                         switchAcceptionLogin={this.AcceptionLogin}
                         switchToOpenProfile={this.OpenProfile}
@@ -183,6 +217,7 @@ class Popup extends React.Component {
                         user={user}
                         owner={owner}
                         title={this.props.title}
+                        switchToOpenHome={this.OpenHome}
                         switchToOpenOnline={this.OpenOnline}
                         switchToOpenProfile={this.OpenProfile}
                         switchAcceptionLogin={this.AcceptionLogin}
@@ -200,6 +235,26 @@ class Popup extends React.Component {
         if (activeForm === "test") {
             return (
                 <Test />
+            )
+        }
+
+        if (activeForm === "fastView") {
+            return (
+                <>
+                    <Header 
+                        user={user}
+                        owner={owner}
+                        title={this.props.title}
+                        switchToOpenHome={this.OpenHome}
+                        switchToOpenOnline={this.OpenOnline}
+                        switchToOpenProfile={this.OpenProfile}
+                        switchAcceptionLogin={this.AcceptionLogin}
+                        switchToLogin={this.OpenLogin}
+                        switchToLogOut={this.AcceptionLogOut}
+                        switchToOpenTest={this.OpenTest}
+                    />
+                    <FastView />
+                </>
             )
         }
     

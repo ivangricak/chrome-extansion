@@ -2,8 +2,6 @@ import React, { useState } from 'react'
 import '../../css/auth.css'
 import '../../css/main.css'
 import { useForm } from 'react-hook-form';
-import Header from '../header'
-import Fab from '../test/test'
 
 class ShowGroup extends React.Component {
     render() {
