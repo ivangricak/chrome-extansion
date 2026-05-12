@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import '../../css/auth.css'
 import '../../css/main.css'
 import { useForm } from 'react-hook-form';
+import Fab from '../test/Test'
 
 class ShowGroup extends React.Component {
     render() {
@@ -36,7 +37,7 @@ class ShowGroup extends React.Component {
                                 :
                                     <ul className="dropdown-menu">
                                         <li className="nav-item">
-                                            <a className="nav-link" href="">Profile</a>
+                                            <a className="nav-link">Profile</a>
                                         </li>
                                         <li className="nav-item">
                                             <button className="nav-link">copy group</button>
@@ -65,7 +66,7 @@ class ShowGroup extends React.Component {
     
 }
 
-class CreateDefItem extends React.Component {
+class CreateItem extends React.Component {
 
     render () {
         const { id, CloseForms, token, loadDefGroupItems, typeOfGroup} = this.props;
@@ -73,6 +74,7 @@ class CreateDefItem extends React.Component {
             chrome.storage.local.get("token", ({token}) => {
                 const formDiv = document.querySelector('.created-div');                
                 const formData = new FormData(formDiv);
+                console.log('formData: ', formDiv);
                 fetch('https://wet-saver-production.up.railway.app/api/create/item', {
                     method: 'POST',
                     headers: {
@@ -83,6 +85,11 @@ class CreateDefItem extends React.Component {
                 })
                 .then(res => res.json())
                 .then(data => {
+                    chrome.storage.local.get('defgroups', (result) => {
+                        const currentGroups = result.defgroups || [];
+                        {data.item ? currentGroups[0].items.push(data.item) : currentGroups[0].items.push(data)}
+                        chrome.storage.local.set({ "defgroups": currentGroups });
+                    })
                     loadDefGroupItems(typeOfGroup ,id);
                 })
                 .catch(err => {
@@ -152,7 +159,7 @@ class ShowDefGroup extends React.Component {
                         <div className="item-copy" key={item.id}>
                             <div className="item" onClick={() => ShowItemBody(item)} id='item'>
                                 <span className="tag">{item.tag || ' '}</span>
-                                <span>{item.name}</span>
+                                <span className='item-name'>{item.name}</span>
                             </div>
                             <button className="copy" type="button">copy</button>
                         </div>
@@ -337,6 +344,7 @@ class Home extends React.Component {
                 groups: data.groups,
                 defgroups: data.default_groups
             })
+            chrome.storage.local.set({"defgroups": data.default_groups});
         })
 
         // CATEGORIES
@@ -405,7 +413,15 @@ class Home extends React.Component {
                 'Accept': 'application/json'
             }
         })
+        .then(res => res.json())
         .then(data => {
+            console.log('itemid:', data.item_id);
+            const itemId = data.item_id;
+            chrome.storage.local.get('defgroups', (result) => {
+                const currentGroups = result.defgroups || [];
+                {itemId && (currentGroups[0].items = currentGroups[0].items.filter(item => item.id !== itemId))}
+                chrome.storage.local.set({ "defgroups": currentGroups });
+            })
             console.log('deleted: ', data);
         })
         .then(() => {
@@ -417,13 +433,55 @@ class Home extends React.Component {
                         items: group.items.filter(i => i.id !== item.id)
                     } : group
                 )
-            }))
-        this.CloseForms("CloseSelItem");
+            }));
+            this.CloseForms("CloseSelItem");
         })
         .catch(err => {
             console.error('DELETE ERROR:', err);
         });
     }
+
+    FastCreateItem = ( data, defgroups ) => {
+        chrome.storage.local.get(["token"], (token) => {
+            chrome.tabs.query({ 'active': true, 'currentWindow': true }, (tabs) => { 
+                const url = tabs[0].url;
+                const title = tabs[0].title;
+                console.log('url: ', url, ' + title: ', title, ' + user id: ', defgroups.user_id, "defID:" , defgroups.id);
+                const ItemData = {
+                    "default_group_id": defgroups.id,
+                    "name": title,
+                    "link": url,
+                    "description": null,
+                    "state": 0,
+                    "tags": [] 
+                };
+
+                fetch('https://wet-saver-production.up.railway.app/api/create/item', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token.token}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(ItemData)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    // this.setState(prevState => ({ defgroups: prevState.defgroups.map(group =>  group.id === defgroups.id ? { ...group, items: [...(group.items || []), data.item]} : group )}));
+                    chrome.storage.local.get('defgroups', (result) => {
+                        const currentGroups = result.defgroups || [];
+                        {data.item && (currentGroups[0].items.push(data.item))}
+                        chrome.storage.local.set({ "defgroups": currentGroups }, () => {
+                            this.setState(prevState => ({ defgroups: prevState.defgroups.map(group => group.id === defgroups.id ? {...group, items: [...(group.items || []), data.item]} : group)}));
+                        });
+                    })
+
+                    console.log('new data: ', data);
+                })
+            });
+            console.log("new data: ", data);
+        });
+    }    
     
     loadDefGroupItems = (typeOfGroup, defgroupId) => {
         console.log('id: ', defgroupId);
@@ -572,7 +630,7 @@ class Home extends React.Component {
                     )}
                 </main>
                 {this.state.showDefItemForm && (
-                    <CreateDefItem
+                    <CreateItem
                         id={this.state.selectDefId}
                         CloseForms={this.CloseForms}
                         loadDefGroupItems={this.loadDefGroupItems}
@@ -589,9 +647,13 @@ class Home extends React.Component {
                         categories={this.state.categories}
                     />
                 )}
-                <button className="btn btn-primary btnCreateGroup" onClick={() => this.OpenForms("CreateGroup")}>+</button>
-                {/* <Fab OpenForms={this.OpenForms} /> */}
-                
+                {/* <button className="btn btn-primary btnCreateGroup" onClick={() => this.OpenForms("CreateGroup")}>+</button> */}
+                <Fab 
+                    OpenForms={this.OpenForms}
+                    user={this.state.users}
+                    defgroups={this.state.defgroups}
+                    FastCreateItem={this.FastCreateItem}
+                />
                 {this.state.showCreateGroupForm && (
                     <CreateGroup 
                         CloseForms={this.CloseForms}

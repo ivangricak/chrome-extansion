@@ -10,6 +10,7 @@ import Profile from './components/private/profile/Profile'
 import OnlineProfile from './components/online/profile/Profile'
 import Test from './components/test/Test'
 import FastView from './components/private/FastView'
+import { NavbarFastView } from './components/Navbar'
 
 class Popup extends React.Component {
     constructor(props) {
@@ -44,7 +45,6 @@ class Popup extends React.Component {
     AcceptionLogin() {
         chrome.storage.local.get(["activeForm"], (result) => {
             {result.activeForm === 'fastView' ? this.setState({activeForm: "fastView"}) : this.setState({activeForm: 'home'}) }
-            // this.setState({activeForm: 'home'})
         });
     }
     OpenHome() {
@@ -175,6 +175,7 @@ class Popup extends React.Component {
                         switchToOpenHome={this.OpenHome}
                         switchToOpenOnline={this.OpenOnline}
                         switchAcceptionLogin={this.AcceptionLogin}
+                        switchToOpenMainPage={this.OpenMainPage}
                         switchToOpenProfile={this.OpenProfile}
                         switchToLogin={this.OpenLogin}
                         switchToLogOut={this.AcceptionLogOut}
@@ -198,6 +199,7 @@ class Popup extends React.Component {
                         switchToOpenHome={this.OpenHome}
                         switchToOpenOnline={this.OpenOnline}
                         switchAcceptionLogin={this.AcceptionLogin}
+                        switchToOpenMainPage={this.OpenMainPage}
                         switchToOpenProfile={this.OpenProfile}
                         switchToLogin={this.OpenLogin}
                         switchToLogOut={this.AcceptionLogOut}
@@ -221,6 +223,7 @@ class Popup extends React.Component {
                         switchToOpenOnline={this.OpenOnline}
                         switchToOpenProfile={this.OpenProfile}
                         switchAcceptionLogin={this.AcceptionLogin}
+                        switchToOpenMainPage={this.OpenMainPage}
                         switchToLogin={this.OpenLogin}
                         switchToLogOut={this.AcceptionLogOut}
                         switchToOpenTest={this.OpenTest}
@@ -241,7 +244,7 @@ class Popup extends React.Component {
         if (activeForm === "fastView") {
             return (
                 <>
-                    <Header 
+                    {/* <Header 
                         user={user}
                         owner={owner}
                         title={this.props.title}
@@ -249,11 +252,15 @@ class Popup extends React.Component {
                         switchToOpenOnline={this.OpenOnline}
                         switchToOpenProfile={this.OpenProfile}
                         switchAcceptionLogin={this.AcceptionLogin}
+                        switchToOpenMainPage={this.OpenMainPage}
                         switchToLogin={this.OpenLogin}
                         switchToLogOut={this.AcceptionLogOut}
                         switchToOpenTest={this.OpenTest}
+                    /> */}
+                    <FastView 
+                        switchToOpenHome={this.OpenHome}
                     />
-                    <FastView />
+                    {/* <NavbarFastView /> */}
                 </>
             )
         }

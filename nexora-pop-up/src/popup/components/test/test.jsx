@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const Fab = ({ OpenForms }) => {
+const Fab = ({ OpenForms, FastCreateItem, user, defgroups }) => {
+  console.log('user id: ', user, "defgroup: ", defgroups);
   const [isOpen, setIsOpen] = useState(false);
 
   const transition = { type: "spring", stiffness: 200, damping: 25 };
@@ -18,7 +19,6 @@ const Fab = ({ OpenForms }) => {
         }}
         transition={transition}
       >
-        {/* КОНТЕНТ МЕНЮ */}
         <div className="menu-content-wrapper">
           <AnimatePresence>
             {isOpen && (
@@ -29,23 +29,16 @@ const Fab = ({ OpenForms }) => {
                 exit={{ opacity: 0, y: 5, transition: { duration: 0.15 } }}
                 transition={{ delay: 0.1 }}
               >
-                <span className="menu-item-text">Add Item</span>
+                <span className="menu-item-text" onClick={() => OpenForms("CreateItem", "defgroups", defgroups[0].id)}>Add Item</span>
                 <span className="menu-item-text" onClick={() => OpenForms("CreateGroup")}>Add Group</span>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
-
-        {/* НИЖНЯ ПАНЕЛЬ */}
         <div className="bottom-bar">
-          
-            {/* ЗОНА ПЛЮСА */}
             <div 
                 className="plus-zone"
-                onClick={(e) => {
-                e.stopPropagation();
-                if (!isOpen) console.log("Action for Plus");
-                }}
+                onClick={() => FastCreateItem(user, defgroups[0])}
             >
                 <motion.div
                 className="plus-icon"
@@ -58,8 +51,6 @@ const Fab = ({ OpenForms }) => {
                 +
                 </motion.div>
             </div>
-
-            {/* ЗОНА ТРЬОХ КРАПОК */}
             <AnimatePresence>
                 {!isOpen && (
                 <motion.div
@@ -71,15 +62,13 @@ const Fab = ({ OpenForms }) => {
                 >
                     <div className="divider" />
                     <div className="dots-column">
-                    <div className="dot" />
-                    <div className="dot" />
-                    <div className="dot" />
+                      <div className="dot" />
+                      <div className="dot" />
+                      <div className="dot" />
                     </div>
                 </motion.div>
                 )}
             </AnimatePresence>
-
-            {/* КНОПКА ЗАКРИТТЯ (активна тільки коли відкрито) */}
             {isOpen && (
                 <div 
                 className="close-trigger"
