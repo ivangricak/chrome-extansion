@@ -4,13 +4,13 @@ import '../../css/main.css'
 
 class ShowItems extends React.Component {
     render () {
-        const { defgroups, OpenLink, onContextMenu } = this.props;
+        const { defgroups, OpenLink, onContextMenu, deleteItem } = this.props;
         console.log('defItem: ', defgroups);
         return (
             <div className='ItemList'>
                 {defgroups.items?.map((item) => (
                     <div className='Item' key={item.id}>
-                        <button className='item-name-FastView text-truncate' onClick={() => OpenLink(item.link)} onContextMenu={(e) => onContextMenu(e, item)} data-bs-toggle='tooltip'> {item.name} </button>
+                        <button className='item-name-FastView text-truncate' onClick={() => OpenLink(item.link)} onContextMenu={(e) => onContextMenu(e, item)} data-bs-toggle='tooltip'> {item.name} </button> <button className='DeleteItemFastView' onClick={() => deleteItem(item)}><i className="bi bi-trash"></i></button>
                     </div>
                 ))}
             </div>
@@ -31,7 +31,7 @@ class FastView extends React.Component {
                 visible: false,
                 x: 0,
                 y: 0,
-                targetItem: null // тут будемо зберігати айтем, на який клікнули
+                targetItem: null
             }
         };
     }
@@ -46,11 +46,8 @@ class FastView extends React.Component {
         });
     }
 
-     // Відкриваємо меню
     handleContextMenu = (event, item) => {
-        event.preventDefault(); // Блокуємо стандартне меню Chrome
-        
-        // Отримуємо координати кліку відносно вікна розширення
+        event.preventDefault(); 
         this.setState({
             contextMenu: {
                 visible: true,
@@ -59,12 +56,46 @@ class FastView extends React.Component {
                 targetItem: item
             }
         });
-
-        // Додаємо слухач кліку, щоб закрити меню при натисканні в будь-якому іншому місці
         document.addEventListener('click', this.closeContextMenu);
     }
 
-    // Закриваємо меню
+    deleteItem = (item) => {
+        const groupId = item.default_group_id ?? item.group_id;
+        const typeOfGroup = item.default_group_id ? 'defgroups' : 'groups';
+        chrome.storage.local.get(["token"], (result) => {
+            const token = result.token;
+            fetch(`https://wet-saver-production.up.railway.app/api/items/${item.id}`,  {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                console.log('itemid:', data.item_id);
+                const itemId = data.item_id;
+                chrome.storage.local.get('defgroups', (result) => {
+                    const currentGroups = result.defgroups || [];
+                    {itemId && (currentGroups[0].items = currentGroups[0].items.filter(item => item.id !== itemId))}
+                    chrome.storage.local.set({ "defgroups": currentGroups });
+                })
+                console.log('deleted: ', data);
+            })
+            .then(() => {
+                this.setState(prevState => ({
+                    defgroups: {
+                        ...prevState.defgroups,
+                        items: prevState.defgroups.items.filter(i => i.id !== item.id)
+                    }
+                }));
+            })
+            .catch(err => {
+                console.error('DELETE ERROR:', err);
+            });
+        });
+    }
+
     closeContextMenu = () => {
         this.setState({
             contextMenu: {
@@ -74,7 +105,6 @@ class FastView extends React.Component {
                 targetItem: null
             }
         });
-        // Прибираємо слухач, щоб не засмічувати пам'ять
         document.removeEventListener('click', this.closeContextMenu);
     }
 
@@ -146,10 +176,11 @@ class FastView extends React.Component {
         return (
             <>
                 <div className="FastViewContent">
-                    <ShowItems 
+                    <ShowItems
                         defgroups={defgroups}
                         OpenLink={this.OpenLink}
                         onCosntextMenu={this.handleContextMenu}
+                        deleteItem={this.deleteItem}
                     />
                     {/* {contextMenu.visible && (
                         <div 

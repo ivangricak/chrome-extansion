@@ -425,6 +425,7 @@ h2 {
 }
 
 .menu-item-text {
+    cursor: pointer;
     font-weight: 600;
     white-space: nowrap;
 }
@@ -554,9 +555,9 @@ h2 {
     padding: 0 5px 0 5px;
 }
 
-.ItemList .Item button {
+/* .ItemList .Item button {
     width: 100%;
-}
+} */
 
 .ItemList .Item:hover { 
     background-color: #767676;
@@ -565,7 +566,6 @@ h2 {
 }
 
 .MenuContainerFastView {
-    /* border: 2px solid #767676; */
     background-color: #4D4D4D;
     position: absolute;
     border-radius: 7px;
@@ -587,4 +587,17 @@ h2 {
 
 .MenuButtomFastView:hover {
     background-color: #767676;
+}
+
+.DeleteItemFastView {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    opacity: 0;
+    transition: opacity 0.05s ease;
+}
+
+.Item:hover .DeleteItemFastView {
+    opacity: 1;
 }

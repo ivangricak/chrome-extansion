@@ -6,7 +6,7 @@ import Fab from '../test/Test'
 
 class ShowGroup extends React.Component {
     render() {
-        const { group, expandedId, ShowItemBody, toggleCard, typeOfGroup, DeleteGroup, OpenForms } = this.props;
+        const { group, expandedId, ShowItemBody, toggleCard, typeOfGroup, DeleteGroup, OpenForms, CopyGroup } = this.props;
         console.log('check:', group);
         const conEdit = group.pivot.role == 0 || group.pivot.role == null;
 
@@ -40,8 +40,9 @@ class ShowGroup extends React.Component {
                                             <a className="nav-link">Profile</a>
                                         </li>
                                         <li className="nav-item">
-                                            <button className="nav-link">copy group</button>
+                                            <button className="nav-link" onClick={() => CopyGroup(group.id)}>copy group</button>
                                         </li>
+                                        <li><p className="dropdown-divider"></p></li>
                                         <li className="nav-item">
                                             <button type="submit" className="delete-btn-group nav-link" onClick={() => DeleteGroup(group.id)}>Delete Group</button>
                                         </li>
@@ -441,6 +442,23 @@ class Home extends React.Component {
         });
     }
 
+    CopyGroup = (groupId) => {
+        chrome.storage.local.get("token", ({token}) => {
+            fetch(`https://wet-saver-production.up.railway.app/api/groups/${groupId}/copy`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                console.log('issd: ', data);
+                this.LoadData("LoadGroup", null, data.group);
+            })
+        })
+    }
+
     FastCreateItem = ( data, defgroups ) => {
         chrome.storage.local.get(["token"], (token) => {
             chrome.tabs.query({ 'active': true, 'currentWindow': true }, (tabs) => { 
@@ -582,6 +600,7 @@ class Home extends React.Component {
                                 <ShowGroup
                                     key={group.id}
                                     group={group}
+                                    CopyGroup={this.CopyGroup}
                                     expandedId={this.state.expandedId}
                                     ShowItemBody={this.ShowItemBody}
                                     toggleCard={this.toggleCard}
