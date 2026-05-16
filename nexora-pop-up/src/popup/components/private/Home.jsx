@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import '../../css/auth.css'
 import '../../css/main.css'
 import { useForm } from 'react-hook-form';
@@ -36,9 +36,9 @@ class ShowGroup extends React.Component {
                                     </ul>
                                 :
                                     <ul className="dropdown-menu">
-                                        <li className="nav-item">
+                                        {/* <li className="nav-item">
                                             <a className="nav-link">Profile</a>
-                                        </li>
+                                        </li> */}
                                         <li className="nav-item">
                                             <button className="nav-link" onClick={() => CopyGroup(group.id)}>copy group</button>
                                         </li>
@@ -181,12 +181,93 @@ class ShowDefGroup extends React.Component {
     }
 }
 
-const ShowEditGroupForm = ({ group, CloseForms, LoadData, categories }) => {
-    const { register, handleSubmit, formState} = useForm({
-        defaultValues: {
-            name: group.name
+const ShowItemsForm = ({CloseForms, selectedItem, deleteItem, token}) => {
+
+    const [isEditing, setIsEditing] = useState(false);
+    const { register, handleSubmit, reset } = useForm();
+
+    useEffect(() => {
+        if (selectedItem) {
+            reset({
+                name: selectedItem.name,
+                state: selectedItem.state,
+                link: selectedItem.link,
+                description: selectedItem.description
+            });
         }
-    });
+    }, [selectedItem, reset]);
+
+    const updateItem = (data) => {
+        console.log('YES!!!: ', data);
+        // chrome.storage.local.get("token", ({token}) => {
+        //     fetch(`https://wet-saver-production.up.railway.app/api/}`, {
+        //         method: 'PUT',
+        //         headers: {
+        //             'Authorization': `Bearer ${token}`,
+        //             'Content-Type': 'application/json'
+        //         },
+        //         body: JSON.stringify(data)
+        //     })
+        //     .then(res => res.json())
+        //     .then(data => {
+        //         CloseForms("CloseEditGroup");
+        //         LoadData("LoadEditGroup", null, data.group);
+        //         console.log('JSON parsed:', data.group.name);
+        //     });
+        // });
+    }
+    return (
+        <form 
+            onSubmit={handleSubmit((updateItem))}
+            className="modal" id="itemModal-block"
+        >
+            <div className="modal-dialog modal-fullscreen">
+                <div className="modal-content">
+                    <div className="modal-header">
+                        <h5 className="modal-title" id="itemModalTitle"></h5>
+                        <button type="button" className="btn-close" onClick={() => CloseForms("CloseSelItem")}></button>
+                    </div>
+                    <div className="modal-body" id="itemModalBody">
+                        {/* Завантаження... */}
+                            <>
+                                <div className="item-data">
+                                    <div className="input-group mb-3">
+                                        <input type="text" className="form-control item-field" value={selectedItem.name} {...register('name')} disabled={!isEditing}/>
+                                    </div>
+                                    <select className="form-select mb-2 item-field" value={selectedItem.state} {...register('state')} disabled={!isEditing}>
+                                        <option value={1}>Public</option>
+                                        <option value={0}>Private</option>
+                                    </select>
+                                    <div className="input-group mb-3">
+                                        <input type="text" className="form-control item-field" value={selectedItem.link} {...register('link')} disabled={!isEditing}/>
+                                        <button className="btn btn-outline-secondary">📋 copy</button>
+                                    </div>
+                                    <div className="input-group mb-3">
+                                        <textarea className="form-control item-field" rows="6" data-field="description" value={selectedItem.description} {...register('description')} disabled={!isEditing}/>
+                                    </div>
+                                    <button className="btn btn-primary edit-save-btn" type={isEditing ? 'submit' : 'button'} onClick={() => {!isEditing && setIsEditing(true)}}>{isEditing ? "Save" : "Edit"}</button>
+                                    <button className="btn btn-danger delete-btn" onClick={() => {isEditing ? setIsEditing(false) :deleteItem(selectedItem, token)}}>{isEditing ? "Cancel" : "Delete"}</button>
+                                </div>
+                            </>
+                    </div>
+                </div>
+            </div>
+        </form>
+    )
+}
+
+const ShowEditGroupForm = ({ group, CloseForms, LoadData, categories }) => {
+    const { register, handleSubmit, reset } = useForm();
+    useEffect(() => {
+        if (group) {
+            reset({
+                name: group.name,
+                state: group.state,
+                category_id: group.category_id
+            });
+        }
+    }, [group, reset]);
+
     const updateGroup = (data) => {
         chrome.storage.local.get("token", ({token}) => {
             fetch(`https://wet-saver-production.up.railway.app/api/groups/${group.id}`, {
@@ -377,7 +458,6 @@ class Home extends React.Component {
         });
     }
 
-    //DELETE GROUP
     DeleteGroup = (groupId) => {
         if(!confirm('Ви точно хочете видалити цю group?')) return;
         console.log('deleted');
@@ -613,6 +693,14 @@ class Home extends React.Component {
                     </div>
 
                     {this.state.selectedItem != null && Object.keys(this.state.selectedItem).length > 0 && (
+                        <ShowItemsForm 
+                            CloseForms={this.CloseForms}
+                            selectedItem={this.state.selectedItem}
+                            deleteItem={this.deleteItem}
+                            token={this.state.token}
+                        />
+                    )}
+                    {/* {this.state.selectedItem != null && Object.keys(this.state.selectedItem).length > 0 && (
                         <div className="modal" id="itemModal-block">
                             <div className="modal-dialog modal-fullscreen">
                                 <div className="modal-content">
@@ -621,7 +709,6 @@ class Home extends React.Component {
                                         <button type="button" className="btn-close" onClick={() => this.CloseForms("CloseSelItem")}></button>
                                     </div>
                                     <div className="modal-body" id="itemModalBody">
-                                        {/* Завантаження... */}
                                             <>
                                                 <div className="item-data">
                                                     <div className="input-group mb-3">
@@ -646,7 +733,7 @@ class Home extends React.Component {
                                 </div>
                             </div>
                         </div>
-                    )}
+                    )} */}
                 </main>
                 {this.state.showDefItemForm && (
                     <CreateItem
