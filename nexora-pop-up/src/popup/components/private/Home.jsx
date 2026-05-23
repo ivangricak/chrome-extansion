@@ -181,10 +181,12 @@ class ShowDefGroup extends React.Component {
     }
 }
 
-const ShowItemsForm = ({CloseForms, selectedItem, deleteItem, token}) => {
+const ShowItemsForm = ({ CloseForms, LoadData, selectedItem, deleteItem, token }) => {
 
     const [isEditing, setIsEditing] = useState(false);
     const { register, handleSubmit, reset } = useForm();
+
+    console.log('selItem:', selectedItem);
 
     useEffect(() => {
         if (selectedItem) {
@@ -199,22 +201,21 @@ const ShowItemsForm = ({CloseForms, selectedItem, deleteItem, token}) => {
 
     const updateItem = (data) => {
         console.log('YES!!!: ', data);
-        // chrome.storage.local.get("token", ({token}) => {
-        //     fetch(`https://wet-saver-production.up.railway.app/api/}`, {
-        //         method: 'PUT',
-        //         headers: {
-        //             'Authorization': `Bearer ${token}`,
-        //             'Content-Type': 'application/json'
-        //         },
-        //         body: JSON.stringify(data)
-        //     })
-        //     .then(res => res.json())
-        //     .then(data => {
-        //         CloseForms("CloseEditGroup");
-        //         LoadData("LoadEditGroup", null, data.group);
-        //         console.log('JSON parsed:', data.group.name);
-        //     });
-        // });
+        chrome.storage.local.get("token", ({token}) => {
+            fetch(`https://wet-saver-production.up.railway.app/api/items/${selectedItem.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(data => {
+                setIsEditing(false);
+                LoadData("LoadEditItem", (data.item.group_id !== null ? 'groups' : 'defgroups'), data.item); 
+            });
+        });
     }
     return (
         <form 
@@ -232,21 +233,21 @@ const ShowItemsForm = ({CloseForms, selectedItem, deleteItem, token}) => {
                             <>
                                 <div className="item-data">
                                     <div className="input-group mb-3">
-                                        <input type="text" className="form-control item-field" value={selectedItem.name} {...register('name')} disabled={!isEditing}/>
+                                        <input type="text" className="form-control item-field" {...register('name')} disabled={!isEditing}/>
                                     </div>
-                                    <select className="form-select mb-2 item-field" value={selectedItem.state} {...register('state')} disabled={!isEditing}>
+                                    <select className="form-select mb-2 item-field" {...register('state')} disabled={!isEditing}>
                                         <option value={1}>Public</option>
                                         <option value={0}>Private</option>
                                     </select>
                                     <div className="input-group mb-3">
-                                        <input type="text" className="form-control item-field" value={selectedItem.link} {...register('link')} disabled={!isEditing}/>
+                                        <input type="text" className="form-control item-field" {...register('link')} disabled={!isEditing}/>
                                         <button className="btn btn-outline-secondary">📋 copy</button>
                                     </div>
                                     <div className="input-group mb-3">
-                                        <textarea className="form-control item-field" rows="6" data-field="description" value={selectedItem.description} {...register('description')} disabled={!isEditing}/>
+                                        <textarea className="form-control item-field" rows="6" data-field="description" {...register('description')} disabled={!isEditing}/>
                                     </div>
-                                    <button className="btn btn-primary edit-save-btn" type={isEditing ? 'submit' : 'button'} onClick={() => {!isEditing && setIsEditing(true)}}>{isEditing ? "Save" : "Edit"}</button>
-                                    <button className="btn btn-danger delete-btn" onClick={() => {isEditing ? setIsEditing(false) :deleteItem(selectedItem, token)}}>{isEditing ? "Cancel" : "Delete"}</button>
+                                    <button className="btn btn-primary edit-save-btn" type={isEditing ? 'submit' : 'button'} onClick={(e) => {if (!isEditing) {e.preventDefault(); setIsEditing(true)}}}> {isEditing ? "Save" : "Edit"} </button>
+                                    <button className="btn btn-danger delete-btn" onClick={() => {isEditing ? setIsEditing(false) : deleteItem(selectedItem, token)}}>{isEditing ? "Cancel" : "Delete"}</button>
                                 </div>
                             </>
                     </div>
@@ -633,15 +634,16 @@ class Home extends React.Component {
 
     CloseForms = (key) => {
         { key === "CloseCreateGroup" && this.setState({ showCreateGroupForm: false }) }
-        { key === "CloseEditGroup" &&  this.setState({ showEditGroupForm: false, selectDefId: null }) }
-        { key === "CloseCreateItem" && this.setState({ showDefItemForm: false, selectDefId: null, typeOfGroup: null}) }
+        { key === "CloseEditGroup" && this.setState({ showEditGroupForm: false, selectDefId: null }) }
+        { key === "CloseCreateItem" && this.setState({ showDefItemForm: false, selectDefId: null, typeOfGroup: null }) }
         { key === "CloseSelItem" && this.setState({ selectedItem: false, expandedId: null }) }
     }
 
     LoadData = (key, type, value) => {
-        { key === "LoadGroup" &&  this.setState(prevState => ({ groups: [...prevState.groups, value] })) }
-        { key === "LoadItem" &&  this.setState(prevState => ({ [type]: prevState[type].map(group => group.id === this.state.selectDefId ? {...group, items: value.items} : group) })); this.CloseForms("CloseCreateItem");}
-        { key === "LoadEditGroup" && this.setState(prevState => ({ groups: prevState.groups.map(g => g.id === value.id ? { ...g, name: value.name, category_id: value.category_id, state: value.state } : g ) })) }
+        { key === "LoadGroup" && this.setState(prevState => ({ groups: [...prevState.groups, value] })) }
+        { key === "LoadItem" && this.setState(prevState => ({ [type]: prevState[type].map(group => group.id === this.state.selectDefId ? {...group, items: value.items} : group) })); this.CloseForms("CloseCreateItem")}
+        { key === "LoadEditItem" && this.setState(prevState => ({ [type]: prevState[type].map(g => ({ ...g, items: g.items.map(i => i.id === value.id ? { ...i, name: value.name, state: value.state, link: value.link, description: value.description } : i )}))}), () => this.CloseForms("CloseSelItem"))}
+        { key === "LoadEditGroup" && this.setState(prevState => ({ groups: prevState.groups.map(g => g.id === value.id ? { ...g, name: value.name, category_id: value.category_id, state: value.state } : g )}))}
     }
    
     render() {
@@ -695,6 +697,7 @@ class Home extends React.Component {
                     {this.state.selectedItem != null && Object.keys(this.state.selectedItem).length > 0 && (
                         <ShowItemsForm 
                             CloseForms={this.CloseForms}
+                            LoadData={this.LoadData}
                             selectedItem={this.state.selectedItem}
                             deleteItem={this.deleteItem}
                             token={this.state.token}

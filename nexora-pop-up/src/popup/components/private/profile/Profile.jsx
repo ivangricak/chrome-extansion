@@ -1,7 +1,50 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import '../../../css/auth.css'
+import { useForm } from 'react-hook-form'
 
+const FormChangeDataProFile = ({ user, nick }) => {
+    const { register, handleSubmit, reset } = useForm();
+    useEffect(() => {
+        reset({
+            nick: nick
+        });
+    }, [nick, reset]);
 
+    const updateDataOfProFile = (data) => {
+        chrome.storage.local.get('token', ({token}) => {
+            fetch(`https://wet-saver-production.up.railway.app/api/profile/${user.id}`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(data => {
+                console.log('Succes: ', data);
+            })
+        });
+    }
+
+    return (
+        <form onSubmit={handleSubmit(updateDataOfProFile)} className="mb-3 row">
+            <label for="nick" className="col-sm-2 col-form-label">Nick</label>
+            <div className="col-sm-10">
+                <input 
+                    type="text" 
+                    className="form-control" 
+                    id="nick" 
+                    name="nick"
+                    // value={nick || ''}
+                    {...register('nick')}
+                />
+            </div>
+            <button type="submit" className="btn btn-primary mt-3" >UpDate</button>
+        </form>
+    )
+}
 
 class Profile extends React.Component {
 
@@ -13,7 +56,8 @@ class Profile extends React.Component {
             FollowingCount: null,
             GroupsCount: null,
             isFollowing: false,
-            user: [],
+            user: {},
+            nick: ''
         }
     }
 
@@ -36,7 +80,8 @@ class Profile extends React.Component {
                     FollowingCount: data.FollowingCount,
                     GroupsCount: data.GroupsCount,
                     isFollowing: data.isFollowing,
-                    user: data.user
+                    user: data.user,
+                    nick: data.user?.nick || ''
                 });
 
                 console.log('res:', data);
@@ -44,8 +89,12 @@ class Profile extends React.Component {
         });
     }
 
+
+
     render() {
-        const { FollowersCount, FollowingCount, GroupsCount, isFollowing, user } = this.state;
+        const { FollowersCount, FollowingCount, GroupsCount, isFollowing, user, nick } = this.state;
+        // const [isEditing, setIsEditing] = useState(false);
+
         return (
             <>
                 <main>
@@ -72,15 +121,26 @@ class Profile extends React.Component {
                                 : 
                                 <button id="follow-btn" className="follow-btn"> Follow </button>}
                             </div> */}
-
                             
-                            <div className="mb-3 row">
+                            {/* <form onSubmit={handleSubmit()} className="mb-3 row">
                                 <label for="nick" className="col-sm-2 col-form-label">Nick</label>
                                 <div className="col-sm-10">
-                                    <input type="text" className="form-control" id="nick" name="nick" value="" />
+                                    <input 
+                                        type="text" 
+                                        className="form-control" 
+                                        id="nick" 
+                                        name="nick"
+                                        value={nick || ''}
+                                        {...register('nick')}
+                                    />
                                 </div>
-                                <button type="submit" className="btn btn-primary mt-3">UpDate</button>
-                            </div>
+                                <button type="submit" className="btn btn-primary mt-3" >UpDate</button>
+                            </form> */}
+
+                            <FormChangeDataProFile 
+                                nick={nick}
+                                user={user}
+                            />
                         </div>
                     </div>
                 </main>
