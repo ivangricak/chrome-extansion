@@ -47,8 +47,52 @@ class OnlineProfile extends React.Component {
         });
     }
 
+    AcceptFollow = (userId) => {
+        chrome.storage.local.get(['token'], ({token}) => {
+            fetch(`https://wet-saver-production.up.railway.app/api/follow/${userId}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.setState(prevState =>({
+                    isFollowing: true,
+                    FollowersCount: prevState.FollowersCount + 1
+                }));
+                console.log('You are Followed: ', data);
+            })
+        });
+    }
+
+    DeleteFollow = (userId) => {
+        chrome.storage.local.get(['token'], ({token}) => {
+            fetch(`https://wet-saver-production.up.railway.app/api/follow/${userId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.setState(prevState =>({
+                    isFollowing: false,
+                    FollowersCount: prevState.FollowersCount - 1
+                }));
+                console.log('You are Followed: ', data);
+            })
+        });
+    }
+
     render() {
         const { FollowersCount, FollowingCount, GroupsCount, isFollowing, user, owner } = this.state;
+        const { AcceptFollow, DeleteFollow } = this;
+        console.log('user:', owner);
         return (
             <>
                 <main>
@@ -71,9 +115,9 @@ class OnlineProfile extends React.Component {
                             </div>
 
                             <div id="follow-block">
-                                {isFollowing ?  <button id="following-btn" className="following-btn"> Unfollow </button> 
+                                {isFollowing ?  <button id="following-btn" className="following-btn" onClick={() => DeleteFollow(owner.id)}> Unfollow </button> 
                                 : 
-                                <button id="follow-btn" className="follow-btn"> Follow </button>}
+                                <button id="follow-btn" className="follow-btn" onClick={() =>AcceptFollow(owner.id)}> Follow </button>}
                             </div>
 
                             

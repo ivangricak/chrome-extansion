@@ -21,11 +21,14 @@ class Header extends React.Component {
                                     <a className="nav-link" onClick={this.props.switchToOpenOnline}>Online</a>
                                 </li>
                                 <li className="nav-item">
-                                    <a className="nav-link" onClick={() => this.props.switchToOpenProfile(this.props.user)}>Profile</a>
+                                    <a className="nav-link" onClick={this.props.switchToOpenFastView}>Launchpad</a>
                                 </li>
                                 <li className="nav-item">
-                                    <a className="nav-link" onClick={this.props.switchToOpenFastView}>Test</a>
+                                    <a className="nav-link" onClick={() => this.props.switchToOpenProfile(this.props.user)}>Profile</a>
                                 </li>
+                                {/* <li className="nav-item">
+                                    <a className="nav-link" onClick={this.props.switchToOpenFastView}>Test</a>
+                                </li> */}
                                 <li className="nav-item">
                                     <a className="nav-link" onClick={this.props.switchToOpenMainPage}>Main</a>
                                 </li>

@@ -12,6 +12,7 @@ const FormChangeDataProFile = ({ user, nick }) => {
 
     const updateDataOfProFile = (data) => {
         chrome.storage.local.get('token', ({token}) => {
+            console.log("Мій токен розширення:", token);
             fetch(`https://wet-saver-production.up.railway.app/api/profile/${user.id}`, {
                 method: 'PATCH',
                 headers: {

@@ -180,6 +180,7 @@ class Popup extends React.Component {
                         switchToLogin={this.OpenLogin}
                         switchToLogOut={this.AcceptionLogOut}
                         switchToOpenTest={this.OpenTest}
+                        switchToOpenFastView={this.OpenFastView}
                     />
                     <Online 
                         switchToOpenProfile={this.OpenProfile}
@@ -204,6 +205,7 @@ class Popup extends React.Component {
                         switchToLogin={this.OpenLogin}
                         switchToLogOut={this.AcceptionLogOut}
                         switchToOpenTest={this.OpenTest}
+                        switchToOpenFastView={this.OpenFastView}
                     />
                     <Profile
                         owner={owner}
@@ -227,6 +229,7 @@ class Popup extends React.Component {
                         switchToLogin={this.OpenLogin}
                         switchToLogOut={this.AcceptionLogOut}
                         switchToOpenTest={this.OpenTest}
+                        switchToOpenFastView={this.OpenFastView}
                     />
                     <OnlineProfile
                         owner={owner}

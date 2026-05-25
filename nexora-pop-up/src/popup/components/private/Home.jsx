@@ -102,7 +102,7 @@ class CreateItem extends React.Component {
         }
 
         return (
-            <form className="created-div">
+            <form className="created-div p-3 border bg-light rounded">
                 <div className="mb-3">
                     <label className="form-label">Name</label>
                     <input type="text" className="form-control" name="name" placeholder="name" required/>
